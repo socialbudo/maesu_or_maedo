@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자왕이 되자! - 혼돈의 서바이벌</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
+        <!-- 헤더 -->
+        <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-center">
+            <h1 class="text-3xl font-extrabold tracking-tight flex items-center justify-center gap-2">
+                <i data-lucide="trending-up" class="w-8 h-8"></i> 투자왕이 되자! (혼돈 에디션)
+            </h1>
+            <p class="text-indigo-200 text-sm mt-1">15턴 안에 30만 원을 달성하거나 파산을 피해 살아남으세요!</p>
+        </div>
+
+        <!-- 게임 상태 대시보드 -->
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <span class="text-xs text-slate-400 block">진행 턴</span>
+                    <span id="turnDisplay" class="text-xl font-bold text-indigo-400">1 / 15</span>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <span class="text-xs text-slate-400 block">보유 현금</span>
+                    <span id="cashDisplay" class="text-xl font-bold text-emerald-400">100,000원</span>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <span class="text-xs text-slate-400 block">주식 계좌</span>
+                    <span id="stockCashDisplay" class="text-xl font-bold text-blue-400">0원</span>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <span class="text-xs text-slate-400 block">총 자산</span>
+                    <span id="totalAssetDisplay" class="text-xl font-bold text-amber-400">100,000원</span>
+                </div>
+            </div>
+
+            <!-- 자산 변화 그래프 -->
+            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-700 h-48">
+                <canvas id="assetChart"></canvas>
+            </div>
+
+            <!-- 뉴스 & 이벤트 패널 -->
+            <div id="newsPanel" class="bg-slate-900 p-5 rounded-xl border border-indigo-500/40 shadow-inner">
+                <div class="flex items-center gap-2 text-indigo-400 font-semibold mb-2">
+                    <i data-lucide="newspaper" class="w-5 h-5"></i>
+                    <span id="newsTitle">시장 대기 중...</span>
+                </div>
+                <p id="newsDesc" class="text-slate-300 text-sm leading-relaxed">버튼을 눌러 첫 번째 턴을 시작하세요!</p>
+                <div id="fakeNewsTag" class="mt-2 hidden">
+                    <span class="inline-block bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded border border-amber-500/30">⚠️ 주의: 가짜 뉴스(찌라시)일 수 있습니다!</span>
+                </div>
+            </div>
+
+            <!-- 컨트롤 패널 (액션 입력) -->
+            <div id="controlPanel" class="space-y-4">
+                <div class="flex gap-2">
+                    <button onclick="setMode('buy')" id="btnBuyTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 transition text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="arrow-down-circle" class="w-4 h-4"></i> 매수 (현금 ➔ 주식)
+                    </button>
+                    <button onclick="setMode('sell')" id="btnSellTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="arrow-up-circle" class="w-4 h-4"></i> 매도 (주식 ➔ 현금)
+                    </button>
+                    <button onclick="doAction('stay')" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="shield" class="w-4 h-4"></i> 존버
+                    </button>
+                </div>
+
+                <div id="inputBoxContainer" class="flex gap-2 items-center bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+                    <span id="inputLabel" class="text-xs text-slate-400 whitespace-nowrap">매수 금액:</span>
+                    <input type="number" id="actionAmount" placeholder="금액 입력 (비워두면 전액)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <button onclick="submitAction()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-1.5 rounded-lg text-sm font-bold transition">실행</button>
+                </div>
+            </div>
+
+            <!-- 결과 로그 -->
+            <div id="resultLog" class="text-xs text-slate-400 bg-slate-900/50 p-3 rounded-lg border border-slate-800 min-h-[40px] flex items-center">
+                게임이 시작되었습니다. 신중하게 선택하세요!
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 종료 모달 -->
+    <div id="endModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md p-6 rounded-2xl text-center space-y-4">
+            <h2 id="modalTitle" class="text-2xl font-bold">게임 종료</h2>
+            <p id="modalDesc" class="text-slate-300 text-sm">결과 내용</p>
+            <button onclick="restartGame()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl transition">다시 하기</button>
+        </div>
+    </div>
+
+    <script>
+        let turn = 1;
+        let cash = 100000;
+        let stockCash = 0;
+        let stockPrice = 10000;
+        let currentMode = 'buy';
+        let assetHistory = [100000];
+
+        const events = [
+            { type: "호재", title: "🚀 신제품 대박 행진!", desc: "A사가 야심 차게 내놓은 신제품이 품절 대란을 일으켰습니다!", min: 5, max: 25 },
+            { type: "호재", title: "💡 정부의 파격적인 세제 혜택", desc: "정부가 유망 기업에 막대한 보조금을 지급하기로 결정했습니다!", min: 3, max: 18 },
+            { type: "호재", title: "🤝 글로벌 대기업과 초대형 계약", desc: "세계적인 기업이 A사의 기술력을 인정하고 독점 공급 계약을 맺었습니다!", min: 10, max: 35 },
+            { type: "악재", title: "💥 핵심 생산 공장 화재 발생", desc: "A사의 메인 공장에서 화재가 발생해 생산에 큰 차질이 생겼습니다.", min: -30, max: -5 },
+            { type: "악재", title: "⚖️ 대표이사 스캔들 터지다", desc: "사내 자금 유용 혐의로 검찰 수사가 시작되었습니다.", min: -35, max: -10 },
+            { type: "악재", title: "📉 경쟁사의 반값 추격 공세", desc: "라이벌 기업이 성능은 똑같고 가격은 절반인 제품을 출시했습니다.", min: -20, max: -3 },
+            { type: "중립", title: "📊 평범한 분기 실적 발표", desc: "예상했던 만큼의 평범한 실적을 기록했습니다.", min: -5, max: 5 },
+            { type: "중립", title: "🌊 증시 전반에 찬바람 (눈치보기)", desc: "특별한 뉴스는 없지만 시장 전체가 횡보하고 있습니다.", min: -8, max: 8 }
+        ];
+
+        let chart;
+        function initChart() {
+            const ctx = document.getElementById('assetChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['시작', '1'],
+                    datasets: [{
+                        label: '총 자산',
+                        data: assetHistory,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            const btnBuy = document.getElementById('btnBuyTab');
+            const btnSell = document.getElementById('btnSellTab');
+            const label = document.getElementById('inputLabel');
+
+            if (mode === 'buy') {
+                btnBuy.className = "flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 transition text-sm flex items-center justify-center gap-1";
+                btnSell.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1";
+                label.innerText = "매수 금액:";
+            } else {
+                btnBuy.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1";
+                btnSell.className = "flex-1 py-2.5 rounded-xl font-semibold bg-blue-600 hover:bg-blue-500 transition text-sm flex items-center justify-center gap-1";
+                label.innerText = "매도 금액:";
+            }
+        }
+
+        function submitAction() {
+            const val = document.getElementById('actionAmount').value;
+            const amount = val === "" ? null : parseInt(val);
+            doAction(currentMode, amount);
+        }
+
+        function doAction(actionType, amount = null) {
+            let logMsg = "";
+            if (actionType === 'buy') {
+                const invest = (amount === null) ? cash : amount;
+                if (cash <= 0) {
+                    logMsg = "❌ 현금이 없어 매수할 수 없습니다! (존버 처리)";
+                } else if (invest > 0 && invest <= cash) {
+                    cash -= invest;
+                    stockCash += invest;
+                    logMsg = `✅ 주식 계좌에 ${invest.toLocaleString()}원을 추가 투입했습니다!`;
+                } else {
+                    logMsg = "❌ 올바르지 않은 금액입니다. 존버 처리됩니다.";
+                }
+            } else if (actionType === 'sell') {
+                const divest = (amount === null) ? stockCash : amount;
+                if (stockCash <= 0) {
+                    logMsg = "❌ 주식 계좌에 잔액이 없습니다! (존버 처리)";
+                } else if (divest > 0 && divest <= stockCash) {
+                    stockCash -= divest;
+                    cash += divest;
+                    logMsg = `✅ 주식 계좌에서 ${divest.toLocaleString()}원을 현금화했습니다!`;
+                } else {
+                    logMsg = "❌ 올바르지 않은 금액입니다. 존버 처리됩니다.";
+                }
+            } else {
+                logMsg = "🧘 시장의 흐름을 지켜보며 존버합니다.";
+            }
+
+            document.getElementById('actionAmount').value = "";
+            processTurn(logMsg);
+        }
+
+        function processTurn(actionLog) {
+            // 1. 이벤트 무작위 추출
+            const ev = events[Math.floor(Math.random() * events.length)];
+            
+            // 2. 가짜 뉴스(찌라시) 시스템 적용 (30% 확률로 뉴스가 반대로 뒤집힘!)
+            let isFake = Math.random() < 0.3;
+            let fluctuation = (Math.random() * (ev.max - ev.min) + ev.min);
+            
+            if (isFake) {
+                fluctuation = -fluctuation; // 호재가 악재로, 악재가 호재로 반전!
+            }
+            fluctuation = Math.round(fluctuation * 10) / 10;
+
+            // UI 뉴스 텍스트 갱신
+            document.getElementById('newsTitle').innerText = `[${ev.type}] ${ev.title}`;
+            document.getElementById('newsDesc').innerText = ev.desc;
+            
+            const fakeTag = document.getElementById('fakeNewsTag');
+            if (isFake) {
+                fakeTag.classList.remove('hidden');
+            } else {
+                fakeTag.classList.add('hidden');
+            }
+
+            // 자산 및 주가 반영
+            if (stockCash > 0) {
+                let change = Math.round(stockCash * (fluctuation / 100));
+                stockCash += change;
+                if (stockCash < 0) stockCash = 0;
+            }
+            stockPrice = Math.max(100, Math.round(stockPrice * (1 + fluctuation / 100)));
+
+            let totalAsset = cash + stockCash;
+            assetHistory.push(totalAsset);
+
+            // 로그 출력
+            let resultText = `${actionLog} | 📈 시장 변동: <span class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</span>`;
+            if (isFake) resultText += ` <span class="text-amber-400 font-semibold">(앗! 가짜 뉴스였습니다!)</span>`;
+            document.getElementById('resultLog').innerHTML = resultText;
+
+            // 상태 갱신
+            updateUI();
+            checkGameCondition(totalAsset);
+        }
+
+        function updateUI() {
+            let totalAsset = cash + stockCash;
+            document.getElementById('turnDisplay').innerText = `${turn} / 15`;
+            document.getElementById('cashDisplay').innerText = `${cash.toLocaleString()}원`;
+            document.getElementById('stockCashDisplay').innerText = `${stockCash.toLocaleString()}원`;
+            document.getElementById('totalAssetDisplay').innerText = `${totalAsset.toLocaleString()}원`;
+
+            chart.data.labels.push(turn);
+            chart.data.datasets[0].data = assetHistory;
+            chart.update();
+        }
+
+        function checkGameCondition(totalAsset) {
+            if (totalAsset <= 0) {
+                showModal("💸 파산하셨습니다!", "자산이 완전히 바닥났습니다. 깡통 계좌의 아픔을 딛고 다시 도전해 보세요!");
+                return;
+            }
+            if (totalAsset >= 300000) {
+                showModal("🏆 전설의 투자왕 등극!", `축하합니다! 30만 원을 돌파하여 역대급 수익을 달성하셨습니다! (최종 자산: ${totalAsset.toLocaleString()}원)`);
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                return;
+            }
+
+            turn++;
+            if (turn > 15) {
+                let diff = totalAsset - 100000;
+                let msg = diff >= 0 ? `+${diff.toLocaleString()}원 이득을 보며 생존하셨습니다!` : `${diff.toLocaleString()}원 손실을 보았습니다.`;
+                showModal("⏰ 15턴 장 마감!", `15회의 치열한 장이 끝났습니다. 최종 자산: ${totalAsset.toLocaleString()}원 (${msg})`);
+            }
+        }
+
+        function showModal(title, desc) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('endModal').classList.remove('hidden');
+            document.getElementById('endModal').classList.add('flex');
+            document.getElementById('controlPanel').style.display = 'none';
+        }
+
+        function restartGame() {
+            turn = 1;
+            cash = 100000;
+            stockCash = 0;
+            stockPrice = 10000;
+            assetHistory = [100000];
+            document.getElementById('endModal').classList.remove('flex');
+            document.getElementById('endModal').classList.add('hidden');
+            document.getElementById('controlPanel').style.display = 'block';
+            document.getElementById('newsTitle').innerText = "시장 대기 중...";
+            document.getElementById('newsDesc').innerText = "새로운 투자가 시작되었습니다. 첫 턴을 진행하세요!";
+            document.getElementById('fakeNewsTag').classList.add('hidden');
+            document.getElementById('resultLog').innerText = "행동을 선택하고 실행 버튼을 눌러주세요.";
+            initChart();
+            updateUI();
+        }
+
+        window.onload = () => {
+            lucide.createIcons();
+            initChart();
+            updateUI();
+        };
+    </script>
+</body>
+</html>
