@@ -3,703 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자왕이 되자! (Investment King)</title>
+    <title>투자왕이 되자! : 서바이벌 에디션</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js for Asset Trend -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Tone.js for Sound Effects -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <!-- Canvas Confetti for Victory -->
+    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Pretendard', 'sans-serif'],
-                    },
-                    colors: {
-                        stock: {
-                            up: '#ef4444',     # 한국 주식 시장: 상승 = 빨강
-                            down: '#3b82f6',   # 하락 = 파랑
-                            gold: '#f59e0b',
-                            dark: '#0f172a',
-                            card: '#1e293b'
-                        }
-                    },
-                    animation: {
-                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'bounce-short': 'bounce 0.5s ease-in-out 2',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        body {
-            background-color: #090d16;
-            color: #f8fafc;
-            user-select: none;
-        }
-        .glow-gold {
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
-        }
-        .glow-up {
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
-        }
-        .glow-down {
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
+        body { font-family: 'Pretendard', sans-serif; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between font-sans antialiased pb-6">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-8">
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-4 py-3">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="bg-gradient-to-tr from-amber-500 to-yellow-300 p-2 rounded-xl text-slate-950 font-black flex items-center justify-center shadow-lg">
-                    <i data-lucide="trending-up" class="w-5 h-5"></i>
+    <div class="max-w-4xl mx-auto w-full space-y-6">
+        <!-- 헤더 -->
+        <header class="flex justify-between items-center bg-slate-800/80 backdrop-blur p-4 rounded-2xl border border-slate-700 shadow-lg">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-500/20 p-2.5 rounded-xl text-amber-400">
+                    <i data-lucide="trending-up" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg leading-none tracking-tight text-white flex items-center gap-1.5">
-                        투자왕이 되자!
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">시즌 1</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 mt-0.5">15턴 안에 30만 원을 달성하세요</p>
+                    <h1 class="font-extrabold text-xl tracking-tight text-white">투자왕이 되자!</h1>
+                    <p class="text-xs text-slate-400">15턴 내 파산 없이 30만 원을 달성하세요</p>
                 </div>
             </div>
+            <div class="flex items-center space-x-2 bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-700/50">
+                <span class="text-xs text-slate-400 font-semibold">턴</span>
+                <span id="turnDisplay" class="font-bold text-amber-400 text-lg">1 / 15</span>
+            </div>
+        </header>
 
-            <div class="flex items-center gap-3">
-                <button id="soundToggle" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="소리 켜기/끄기">
-                    <i data-lucide="volume-2" id="soundIcon" class="w-5 h-5"></i>
-                </button>
-                <button id="restartBtnHeader" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="처음부터 다시하기">
-                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                </button>
+        <!-- 자산 상황 폰트 및 모멘텀 표시 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+                <span class="text-xs text-slate-400 font-medium">💵 보유 현금</span>
+                <div id="cashDisplay" class="text-lg md:text-xl font-bold text-emerald-400 mt-1">100,000원</div>
+            </div>
+            <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+                <span class="text-xs text-slate-400 font-medium">📈 주식 평가액</span>
+                <div id="stockCashDisplay" class="text-lg md:text-xl font-bold text-blue-400 mt-1">0원</div>
+            </div>
+            <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+                <span class="text-xs text-slate-400 font-medium">💎 총 자산</span>
+                <div id="totalAssetDisplay" class="text-lg md:text-xl font-bold text-amber-400 mt-1">100,000원</div>
+            </div>
+            <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 flex flex-col justify-between">
+                <span class="text-xs text-slate-400 font-medium">🔥 시장 모멘텀</span>
+                <div id="momentumDisplay" class="text-sm font-semibold text-slate-300 mt-1 flex items-center space-x-1">
+                    <span>중립 (보통)</span>
+                </div>
             </div>
         </div>
-    </header>
 
-    <!-- Main Content Container -->
-    <main class="max-w-4xl mx-auto w-full px-4 pt-4 flex-grow space-y-4">
-
-        <!-- Progress & Goal Bar -->
-        <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 glow-gold">
-            <div class="flex justify-between items-center text-sm font-semibold mb-2">
-                <span class="text-slate-400 flex items-center gap-1">
-                    <i data-lucide="target" class="w-4 h-4 text-amber-400"></i> 목표 자산: 300,000원
-                </span>
-                <span id="goalPercent" class="text-amber-400 font-bold text-base">33.3%</span>
-            </div>
-            <div class="w-full h-3.5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
-                <div id="goalProgressBar" class="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-emerald-400 rounded-full transition-all duration-700 ease-out" style="width: 33.3%"></div>
-            </div>
-        </section>
-
-        <!-- Status Dashboard Grid -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <!-- Turn Indicator -->
-            <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between">
-                <div class="text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
-                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-400"></i> 남은 기회
+        <!-- 메인 인터랙션 구역 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 좌측: 뉴스 및 액션 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 뉴스 카드 -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-800/90 p-5 rounded-2xl border border-slate-700 shadow-xl space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-slate-700/80 pb-2">
+                        <div class="flex items-center space-x-2 text-rose-400 text-xs font-bold tracking-wide uppercase">
+                            <i data-lucide="newspaper" class="w-4 h-4"></i>
+                            <span>긴급 속보</span>
+                        </div>
+                        <div class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center space-x-1">
+                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                            <span>⚠️ 주의: 가짜 뉴스일 수 있습니다!</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h2 id="newsTitle" class="text-lg font-bold text-white tracking-tight">게임 시작 대기 중</h2>
+                        <p id="newsDesc" class="text-sm text-slate-300 mt-1 leading-relaxed">버튼을 눌러 첫 턴을 시작해 주세요.</p>
+                    </div>
+                    
+                    <div id="newsResult" class="hidden text-xs font-bold p-3 rounded-xl transition-all"></div>
                 </div>
-                <div class="flex items-baseline gap-1">
-                    <span id="turnDisplay" class="text-2xl font-black text-indigo-400">1</span>
-                    <span class="text-xs text-slate-500 font-bold">/ 15 턴</span>
-                </div>
-            </div>
 
-            <!-- Total Assets -->
-            <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between">
-                <div class="text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
-                    <i data-lucide="wallet" class="w-3.5 h-3.5 text-amber-400"></i> 총 자산
-                </div>
-                <div id="totalAssetDisplay" class="text-xl font-black text-amber-300">100,000원</div>
-            </div>
+                <!-- 거래 콘솔 -->
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-slate-200">액션 선택 및 금액 입력</span>
+                        <span class="text-xs text-slate-400">직접 금액을 적거나 비율 버튼 클릭</span>
+                    </div>
 
-            <!-- Cash -->
-            <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between">
-                <div class="text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
-                    <i data-lucide="banknote" class="w-3.5 h-3.5 text-emerald-400"></i> 보유 현금
-                </div>
-                <div id="cashDisplay" class="text-lg font-bold text-slate-200">100,000원</div>
-            </div>
+                    <!-- 금액 입력 input -->
+                    <div class="relative">
+                        <input type="number" id="tradeAmount" placeholder="금액 입력 (예: 5000)" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors">
+                        <span class="absolute right-4 top-3.5 text-sm text-slate-400">원</span>
+                    </div>
 
-            <!-- Stock Account Value -->
-            <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between">
-                <div class="text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
-                    <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-cyan-400"></i> 주식 평가액
-                </div>
-                <div id="stockValueDisplay" class="text-lg font-bold text-cyan-300">0원</div>
-            </div>
-        </section>
+                    <!-- 비율 퀵 버튼 -->
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setAmountPercent(0.25)" class="bg-slate-700/50 hover:bg-slate-700 text-xs py-2 rounded-lg text-slate-300 transition">25%</button>
+                        <button onclick="setAmountPercent(0.50)" class="bg-slate-700/50 hover:bg-slate-700 text-xs py-2 rounded-lg text-slate-300 transition">50%</button>
+                        <button onclick="setAmountPercent(0.75)" class="bg-slate-700/50 hover:bg-slate-700 text-xs py-2 rounded-lg text-slate-300 transition">75%</button>
+                        <button onclick="setAmountPercent(1.0)" class="bg-slate-700/50 hover:bg-slate-700 text-xs py-2 rounded-lg text-slate-300 transition">전액 (100%)</button>
+                    </div>
 
-        <!-- Current Stock Info & Breaking News Area -->
-        <section id="newsCard" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5 transition-all duration-300">
-            <!-- Stock Price Banner -->
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-                <div class="flex items-center gap-2">
-                    <span class="bg-slate-800 text-xs font-bold px-2.5 py-1 rounded-lg text-slate-300">회사 A</span>
-                    <span class="text-sm font-semibold text-slate-400">현재 주가:</span>
-                </div>
-                <div class="flex items-baseline gap-2">
-                    <span id="stockPriceDisplay" class="text-xl md:text-2xl font-black tracking-tight text-white">10,000원</span>
-                    <span id="priceChangeTag" class="text-xs font-bold px-2 py-0.5 rounded text-slate-400 bg-slate-800">변동 없음</span>
+                    <!-- 매수 / 존버 / 매도 버튼 -->
+                    <div class="grid grid-cols-3 gap-3 pt-2">
+                        <button id="buyBtn" onclick="processTurn('buy')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition flex flex-col items-center justify-center">
+                            <span class="text-sm">매수 (Buy)</span>
+                            <span class="text-[10px] opacity-80 font-normal">현금 → 주식</span>
+                        </button>
+                        <button id="holdBtn" onclick="processTurn('hold')" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition flex flex-col items-center justify-center">
+                            <span class="text-sm">존버 (Hold)</span>
+                            <span class="text-[10px] opacity-80 font-normal">관망하기</span>
+                        </button>
+                        <button id="sellBtn" onclick="processTurn('sell')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition flex flex-col items-center justify-center">
+                            <span class="text-sm">매도 (Sell)</span>
+                            <span class="text-[10px] opacity-80 font-normal">주식 → 현금</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Breaking News Container -->
-            <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                    <span id="newsBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
-                        <i data-lucide="siren" class="w-3.5 h-3.5 animate-pulse"></i> 긴급 뉴스
-                    </span>
-                    <span id="newsTypeTag" class="text-xs font-bold text-slate-400">정보 수신 중...</span>
-                </div>
-                <h3 id="newsTitle" class="text-lg md:text-xl font-bold text-white tracking-tight">
-                    뉴스를 불러오는 중입니다.
-                </h3>
-                <p id="newsDesc" class="text-sm text-slate-300 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
-                    시장의 반응을 잘 주시하고 적절한 매수/매도 타이밍을 잡으세요.
-                </p>
-            </div>
-        </section>
-
-        <!-- Action Input & Decision Controls -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
-            <div class="text-sm font-bold text-slate-300 flex items-center gap-2">
-                <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> 투자 금액 설정 (원 단위)
-            </div>
-
-            <!-- Amount Input Box -->
-            <div class="relative">
-                <input type="number" id="tradeAmountInput" placeholder="금액을 입력하세요 (예: 20000)" 
-                    class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-base text-white font-bold placeholder-slate-600 focus:outline-none transition">
-                <div class="absolute right-3 top-3 text-sm font-bold text-slate-500 pointer-events-none">원</div>
-            </div>
-
-            <!-- Quick Action Buttons -->
-            <div class="grid grid-cols-4 gap-2">
-                <button type="button" onclick="addAmount(10000)" class="py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg text-slate-300 transition">+1만</button>
-                <button type="button" onclick="addAmount(50000)" class="py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg text-slate-300 transition">+5만</button>
-                <button type="button" onclick="setAllIn()" class="py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-bold rounded-lg text-amber-300 transition">전액 매수</button>
-                <button type="button" onclick="setAllSell()" class="py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-xs font-bold rounded-lg text-cyan-300 transition">전액 매도</button>
-            </div>
-
-            <!-- Main Decision Buttons (Buy / Hold / Sell) -->
-            <div class="grid grid-cols-3 gap-2.5 pt-1">
-                <!-- Buy Button -->
-                <button id="buyBtn" class="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-xl font-extrabold shadow-lg shadow-red-950/40 active:scale-95 transition">
-                    <span class="flex items-center gap-1 text-base"><i data-lucide="arrow-up-right" class="w-5 h-5"></i> 매 수</span>
-                    <span class="text-[10px] font-normal text-red-100 opacity-80 mt-0.5">현금 ➔ 주식</span>
-                </button>
-
-                <!-- Hold Button -->
-                <button id="holdBtn" class="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl font-extrabold shadow-lg shadow-slate-950/40 active:scale-95 transition">
-                    <span class="flex items-center gap-1 text-base"><i data-lucide="minus" class="w-5 h-5"></i> 존 버</span>
-                    <span class="text-[10px] font-normal text-slate-300 opacity-80 mt-0.5">현 상태 유지</span>
-                </button>
-
-                <!-- Sell Button -->
-                <button id="sellBtn" class="flex flex-col items-center justify-center p-3 bg-gradient-to-b from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl font-extrabold shadow-lg shadow-blue-950/40 active:scale-95 transition">
-                    <span class="flex items-center gap-1 text-base"><i data-lucide="arrow-down-left" class="w-5 h-5"></i> 매 도</span>
-                    <span class="text-[10px] font-normal text-blue-100 opacity-80 mt-0.5">주식 ➔ 현금</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- Asset History Chart & Transaction Log -->
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Asset Chart -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-                <div class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1.5">
-                    <i data-lucide="line-chart" class="w-4 h-4 text-emerald-400"></i> 자산 추이 그래프
-                </div>
-                <div class="h-44 w-full relative">
+            <!-- 우측: 자산 변화 차트 -->
+            <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+                <span class="text-sm font-bold text-slate-200 mb-2 block">📊 자산 변화 추이</span>
+                <div class="h-64 w-full">
                     <canvas id="assetChart"></canvas>
                 </div>
             </div>
-
-            <!-- Transaction Logs -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
-                <div class="text-xs font-bold text-slate-400 mb-2 flex items-center justify-between">
-                    <span class="flex items-center gap-1.5"><i data-lucide="history" class="w-4 h-4 text-cyan-400"></i> 거래 및 시장 기록</span>
-                    <span class="text-[10px] text-slate-500">최근순</span>
-                </div>
-                <div id="logContainer" class="h-44 overflow-y-auto space-y-1.5 pr-1 text-xs">
-                    <div class="text-slate-500 italic text-center py-8">아직 진행된 거래가 없습니다.</div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Game Over Modal (Victory or Bankruptcy) -->
-    <div id="resultModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden">
-            <!-- Background Glow -->
-            <div id="modalGlow" class="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl"></div>
-
-            <div id="modalIconContainer" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                <i data-lucide="trophy" class="w-10 h-10"></i>
-            </div>
-
-            <div class="space-y-1">
-                <h2 id="modalTitle" class="text-2xl font-black text-white">축하합니다! 투자왕 달성!</h2>
-                <p id="modalSubtitle" class="text-sm text-slate-400">15턴 만에 멋진 자산 증식을 이뤄냈습니다.</p>
-            </div>
-
-            <!-- Final Stats Box -->
-            <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-2 text-left">
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-400">초기 종잣돈:</span>
-                    <span class="font-bold text-slate-200">100,000원</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-400">최종 달성 자산:</span>
-                    <span id="modalFinalAsset" class="font-bold text-amber-400">320,000원</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-400">총 수익률:</span>
-                    <span id="modalReturnRate" class="font-bold text-emerald-400">+220.0%</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-400">소요 턴수:</span>
-                    <span id="modalTurnsUsed" class="font-bold text-indigo-400">12턴</span>
-                </div>
-            </div>
-
-            <button id="restartBtnModal" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-slate-950 font-black rounded-xl text-base shadow-lg transition transform active:scale-95">
-                다시 도전하기 🚀
-            </button>
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
     <script>
-        // --- GAME STATE ---
-        let currentTurn = 1;
-        const maxTurns = 15;
-        const goalAsset = 300000;
-        
+        lucide.createIcons();
+
+        // 상태 변수
+        let turn = 1;
         let cash = 100000;
         let stockCash = 0;
         let stockPrice = 10000;
-        let soundEnabled = true;
+        let momentum = 0; // 연속 상승(+)/하락(-) 모멘텀 스택
 
-        let assetHistory = [100000];
-        let currentEvent = null;
-
-        // --- NEWS EVENTS DATABASE ---
-        const eventsList = [
-            // Positive News (호재)
-            { type: '호재', title: "🚀 A사, 차세대 AI 신제품 품절 대란!", desc: "A사의 신제품이 시장 발표 직후 폭발적인 반응을 얻으며 전량 매진되었습니다.", minPct: 8.0, maxPct: 25.0 },
-            { type: '호재', title: "🤝 글로벌 빅테크 기업과 대규모 공급 계약", desc: "세계적인 대기업과 5년 간 핵심 부품을 독점 공급하는 계약을 체결했습니다.", minPct: 10.0, maxPct: 30.0 },
-            { type: '호재', title: "💡 정부의 첨단 산업 파격 지원책 발표", desc: "정부가 A사가 속한 산업 분야에 대규모 보조금 지급을 확정했습니다.", minPct: 5.0, maxPct: 15.0 },
-            { type: '호재', title: "🏆 해외 시장 점유율 1위 쾌거 달성", desc: "북미 시장 점유율 1위를 기록하며 분기 최대 실적 경신이 확실시됩니다.", minPct: 6.0, maxPct: 18.0 },
-            
-            // Negative News (악재)
-            { type: '악재', title: "💥 핵심 메인 공장 대형 화재 발생", desc: "주력 제품 생산 공장에서 화재가 발생하여 한 달간 가동이 중단됩니다.", minPct: -25.0, maxPct: -8.0 },
-            { type: '악재', title: "⚖️ 경영진 횡령 배임 혐의 검찰 수사", desc: "대표이사가 사내 자금을 유용한 혐의로 긴급 체포되었습니다.", minPct: -30.0, maxPct: -12.0 },
-            { type: '악재', title: "📉 경쟁사의 반값 덤핑 공세 시작", desc: "라이벌 기업이 동일 성능의 제품을 반값에 출시하며 가격 전쟁을 선포했습니다.", minPct: -18.0, maxPct: -5.0 },
-            { type: '악재', title: "🔍 국세청, 고강도 불법 세무조사 착수", desc: "A사를 대상으로 대규모 탈세 혐의 특별 세무조사가 개시되었습니다.", minPct: -15.0, maxPct: -5.0 },
-            
-            // Neutral / Volatile News (중립)
-            { type: '중립', title: "📊 무난한 3분기 실적 발표 완료", desc: "시장 예상치에 부합하는 평범한 실적을 발표하며 눈치보기 장세가 이어집니다.", minPct: -4.0, maxPct: 5.0 },
-            { type: '중립', title: "🌊 글로벌 금리 동결 및 증시 관망세", desc: "중앙은행의 금리 동결 발표 이후 주가 변동성이 일시적으로 축소되었습니다.", minPct: -5.0, maxPct: 6.0 }
+        // 뉴스 데이터베이스 (진짜/가짜 속성 내포)
+        const newsList = [
+            { type: 'good', title: "🚀 신제품 대박 품절 대란!", desc: "A사의 신제품 반응이 뜨겁습니다! 매출이 폭발할 것이라는 소문이 돕니다.", min: 8, max: 25 },
+            { type: 'good', title: "🤝 글로벌 대기업과 독점 계약 체결?", desc: "세계적 기업과의 계약 체결 소식이 공시되었습니다.", min: 10, max: 30 },
+            { type: 'good', title: "💡 정부의 파격적 보조금 지원 발표", "desc": "정부가 A사 관련 산업에 수조 원 규모 조세를 감면해 준다고 합니다.", min: 5, max: 18 },
+            { type: 'bad', title: "💥 핵심 공장 대형 화재 발생!", desc: "주력 공장에서 큰 불이 나 생산 라인이 전부 멈췄다고 합니다.", min: -25, max: -8 },
+            { type: 'bad', title: "⚖️ 대표이사 사내 횡령 스캔들 터지다", desc: "CEO가 자금을 유용해 검찰 조사를 받는다는 긴급 보도입니다.", min: -30, max: -10 },
+            { type: 'bad', title: "📉 경쟁사의 반값 파격 공세", desc: "라이벌 기업이 반값 제품을 내놓으며 점유율을 뺏기고 있습니다.", min: -18, max: -5 },
+            { type: 'neutral', title: "📊 분기 실적 발표 (시장 예상 부합)", desc: "특별한 기쁨도 슬픔도 없이 무난한 수치를 보여주었습니다.", min: -4, max: 4 }
         ];
 
-        // --- SOUND EFFECTS (Tone.js) ---
-        function playSound(type) {
-            if (!soundEnabled) return;
-            try {
-                if (Tone.context.state !== 'running') {
-                    Tone.start();
+        let currentNews = null;
+
+        // Chart.js 설정
+        const ctx = document.getElementById('assetChart').getContext('2d');
+        const assetChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['시작'],
+                datasets: [{
+                    label: '총 자산(원)',
+                    data: [100000],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
                 }
-                const synth = new Tone.Synth().toDestination();
-                
-                if (type === 'buy') {
-                    synth.triggerAttackRelease("C5", "8n");
-                } else if (type === 'sell') {
-                    synth.triggerAttackRelease("G4", "8n");
-                } else if (type === 'up') {
-                    const poly = new Tone.PolySynth().toDestination();
-                    poly.triggerAttackRelease(["E5", "G5", "C6"], "8n");
-                } else if (type === 'down') {
-                    const poly = new Tone.PolySynth().toDestination();
-                    poly.triggerAttackRelease(["C4", "A3", "F3"], "8n");
-                } else if (type === 'win') {
-                    const poly = new Tone.PolySynth().toDestination();
-                    poly.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
-                } else if (type === 'lose') {
-                    synth.triggerAttackRelease("C3", "4n");
-                }
-            } catch (e) {
-                console.log("Audio play error", e);
             }
-        }
+        });
 
-        // --- CHART SETUP ---
-        let chartInstance = null;
-        function initChart() {
-            const ctx = document.getElementById('assetChart').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['시작'],
-                    datasets: [{
-                        label: '총 자산 (원)',
-                        data: assetHistory,
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#f59e0b'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: '#1e293b' },
-                            ticks: { color: '#64748b', font: { size: 10 } }
-                        },
-                        y: {
-                            grid: { color: '#1e293b' },
-                            ticks: { 
-                                color: '#64748b', 
-                                font: { size: 10 },
-                                callback: function(value) {
-                                    return (value / 10000).toFixed(0) + '만';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateChart(turnLabel, newAsset) {
-            if (!chartInstance) return;
-            chartInstance.data.labels.push(turnLabel + '턴');
-            chartInstance.data.datasets[0].data.push(newAsset);
-
-            // Change color based on profit/loss
-            if (newAsset >= 100000) {
-                chartInstance.data.datasets[0].borderColor = '#f59e0b';
-                chartInstance.data.datasets[0].pointBackgroundColor = '#f59e0b';
-            } else {
-                chartInstance.data.datasets[0].borderColor = '#3b82f6';
-                chartInstance.data.datasets[0].pointBackgroundColor = '#3b82f6';
-            }
-
-            chartInstance.update();
-        }
-
-        // --- GAME MECHANICS & UI UPDATES ---
-        function formatKRW(amount) {
-            return Math.floor(amount).toLocaleString('ko-KR') + '원';
-        }
-
-        function updateUI() {
-            const totalAsset = cash + stockCash;
-
-            // Stats
-            document.getElementById('turnDisplay').innerText = currentTurn;
-            document.getElementById('cashDisplay').innerText = formatKRW(cash);
-            document.getElementById('stockValueDisplay').innerText = formatKRW(stockCash);
-            document.getElementById('totalAssetDisplay').innerText = formatKRW(totalAsset);
-            document.getElementById('stockPriceDisplay').innerText = formatKRW(stockPrice);
-
-            // Goal Progress Bar
-            const progress = Math.min(100, Math.max(0, (totalAsset / goalAsset) * 100));
-            document.getElementById('goalProgressBar').style.width = `${progress}%`;
-            document.getElementById('goalPercent').innerText = `${progress.toFixed(1)}%`;
-
-            // Icons Refresh
-            lucide.createIcons();
-        }
-
-        function setNews() {
-            // Select random event
-            currentEvent = eventsList[Math.floor(Math.random() * eventsList.length)];
-
-            const newsCard = document.getElementById('newsCard');
-            const newsBadge = document.getElementById('newsBadge');
-            const newsTypeTag = document.getElementById('newsTypeTag');
-            const newsTitle = document.getElementById('newsTitle');
-            const newsDesc = document.getElementById('newsDesc');
-
-            newsTitle.innerText = currentEvent.title;
-            newsDesc.innerText = currentEvent.desc;
-
-            if (currentEvent.type === '호재') {
-                newsBadge.className = "text-xs font-extrabold px-2.5 py-1 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1";
-                newsTypeTag.innerText = "📈 호재 예상 (주가 상승 가능성 높음)";
-                newsTypeTag.className = "text-xs font-bold text-red-400";
-            } else if (currentEvent.type === '악재') {
-                newsBadge.className = "text-xs font-extrabold px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1";
-                newsTypeTag.innerText = "📉 악재 경보 (주가 폭락 위험)";
-                newsTypeTag.className = "text-xs font-bold text-blue-400";
-            } else {
-                newsBadge.className = "text-xs font-extrabold px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1";
-                newsTypeTag.innerText = "⚖️ 혼조세 (변동폭 예측 어려움)";
-                newsTypeTag.className = "text-xs font-bold text-amber-400";
-            }
-        }
-
-        function addLog(message, type = 'info') {
-            const logContainer = document.getElementById('logContainer');
-            if (logContainer.children.length === 1 && logContainer.children[0].classList.contains('italic')) {
-                logContainer.innerHTML = '';
-            }
-
-            const item = document.createElement('div');
-            item.className = "p-2 rounded-lg bg-slate-950/70 border border-slate-800/80 flex items-start gap-1.5 leading-snug";
+        // 초기화
+        function initTurn() {
+            if (turn > 15) return;
             
-            let icon = 'info';
-            let colorClass = 'text-slate-300';
-
-            if (type === 'buy') { icon = 'arrow-up-right'; colorClass = 'text-red-400'; }
-            else if (type === 'sell') { icon = 'arrow-down-left'; colorClass = 'text-blue-400'; }
-            else if (type === 'up') { icon = 'trending-up'; colorClass = 'text-red-400 font-bold'; }
-            else if (type === 'down') { icon = 'trending-down'; colorClass = 'text-blue-400 font-bold'; }
-
-            item.innerHTML = `
-                <i data-lucide="${icon}" class="w-3.5 h-3.5 mt-0.5 shrink-0 ${colorClass}"></i>
-                <span class="${colorClass}">${message}</span>
-            `;
-
-            logContainer.insertBefore(item, logContainer.firstChild);
-            lucide.createIcons();
+            // 뉴스 뽑기
+            currentNews = newsList[Math.floor(Math.random() * newsList.length)];
+            document.getElementById('newsTitle').innerText = currentNews.title;
+            document.getElementById('newsDesc').innerText = currentNews.desc;
+            
+            document.getElementById('newsResult').classList.add('hidden');
+            document.getElementById('tradeAmount').value = '';
+            
+            updateUI();
         }
 
-        // Quick Amount Button Helpers
-        function addAmount(val) {
-            const input = document.getElementById('tradeAmountInput');
-            const current = parseInt(input.value) || 0;
-            input.value = current + val;
-        }
-        function setAllIn() {
-            document.getElementById('tradeAmountInput').value = cash;
-        }
-        function setAllSell() {
-            document.getElementById('tradeAmountInput').value = stockCash;
+        // 비율 버튼 클릭 시 금액 자동 계산
+        function setAmountPercent(ratio) {
+            const lastChoice = document.querySelector('button.active-action');
+            // 현금 기준 or 주식 기준 자동 판별
+            const maxAmt = cash > 0 ? cash : stockCash;
+            document.getElementById('tradeAmount').value = Math.floor(maxAmt * ratio);
         }
 
-        // --- TURN EXECUTION LOOP ---
-        function handleTurn(action) {
-            const inputEl = document.getElementById('tradeAmountInput');
-            let amount = parseInt(inputEl.value) || 0;
-            inputEl.value = ''; // clear input
+        // 턴 진행 로직
+        function processTurn(action) {
+            let amtInput = parseInt(document.getElementById('tradeAmount').value) || 0;
 
-            let actionLog = "";
-
-            // 1. Process Player Action
+            // 매수
             if (action === 'buy') {
                 if (cash <= 0) {
-                    addLog(`[턴 ${currentTurn}] 보유 현금이 없어 매수하지 못하고 존버합니다.`, 'info');
-                } else {
-                    if (amount <= 0 || amount > cash) amount = cash; // Default to full cash if invalid
-                    cash -= amount;
-                    stockCash += amount;
-                    playSound('buy');
-                    addLog(`[턴 ${currentTurn}] ${formatKRW(amount)} 주식 매수 완료`, 'buy');
+                    alert("현금이 없습니다!");
+                    return;
                 }
-            } else if (action === 'sell') {
+                let buyAmt = amtInput > 0 ? Math.min(amtInput, cash) : cash;
+                cash -= buyAmt;
+                stockCash += buyAmt;
+            } 
+            // 매도
+            else if (action === 'sell') {
                 if (stockCash <= 0) {
-                    addLog(`[턴 ${currentTurn}] 보유 주식이 없어 매도하지 못하고 존버합니다.`, 'info');
-                } else {
-                    if (amount <= 0 || amount > stockCash) amount = stockCash; // Default to full stock if invalid
-                    stockCash -= amount;
-                    cash += amount;
-                    playSound('sell');
-                    addLog(`[턴 ${currentTurn}] ${formatKRW(amount)} 주식 매도(현금화) 완료`, 'sell');
+                    alert("매도할 주식 자산이 없습니다!");
+                    return;
                 }
-            } else {
-                addLog(`[턴 ${currentTurn}] 시장 추이를 관망하며 '존버' 했습니다.`, 'info');
+                let sellAmt = amtInput > 0 ? Math.min(amtInput, stockCash) : stockCash;
+                stockCash -= sellAmt;
+                cash += sellAmt;
             }
 
-            // 2. Calculate Market Fluctuation
-            const min = currentEvent.minPct;
-            const max = currentEvent.maxPct;
-            const rate = parseFloat((Math.random() * (max - min) + min).toFixed(1));
+            // --- 2. 가짜 뉴스 판단 (25% 확률로 찌라시/반대 결과) ---
+            const isFake = Math.random() < 0.25;
+            let finalType = currentNews.type;
+            
+            if (isFake) {
+                if (currentNews.type === 'good') finalType = 'bad';
+                else if (currentNews.type === 'bad') finalType = 'good';
+            }
 
-            // Apply Rate to Stock Cash and Stock Price
+            // 수치 랜덤 산출
+            let basePct = 0;
+            if (finalType === 'good') {
+                basePct = (Math.random() * (currentNews.max - currentNews.min) + currentNews.min);
+            } else if (finalType === 'bad') {
+                basePct = -(Math.random() * (Math.abs(currentNews.min) - Math.abs(currentNews.max)) + Math.abs(currentNews.max));
+            } else {
+                basePct = (Math.random() * 8 - 4);
+            }
+
+            // --- 4. 모멘텀 시스템 (연속성 반영) ---
+            // 이전 턴 변동에 따라 추가 보너스/디버프 (+- 2~5%)
+            let momentumBonus = momentum * (Math.random() * 3 + 1);
+            let finalPct = +(basePct + momentumBonus).toFixed(1);
+
+            // 모멘텀 스택 업데이트
+            if (finalPct > 3) momentum = Math.min(momentum + 1, 3);
+            else if (finalPct < -3) momentum = Math.max(momentum - 1, -3);
+            else momentum = 0;
+
+            // 주식 자산 변동 반영
             if (stockCash > 0) {
-                const changeAmt = Math.round(stockCash * (rate / 100));
-                stockCash += changeAmt;
-                if (stockCash < 0) stockCash = 0;
+                stockCash = Math.max(0, Math.round(stockCash * (1 + finalPct / 100)));
             }
 
-            stockPrice = Math.max(100, Math.round(stockPrice * (1 + rate / 100)));
-
-            // 3. Market Feedback Animation & Sound
-            const priceTag = document.getElementById('priceChangeTag');
-            if (rate > 0) {
-                playSound('up');
-                priceTag.className = "text-xs font-bold px-2 py-0.5 rounded text-red-400 bg-red-500/20 border border-red-500/30 animate-bounce-short";
-                priceTag.innerText = `+${rate}% 상승`;
-                addLog(`📈 [시장 결과] ${currentEvent.title} ➔ 주가 +${rate}% 폭등!`, 'up');
-            } else if (rate < 0) {
-                playSound('down');
-                priceTag.className = "text-xs font-bold px-2 py-0.5 rounded text-blue-400 bg-blue-500/20 border border-blue-500/30 animate-bounce-short";
-                priceTag.innerText = `${rate}% 하락`;
-                addLog(`📉 [시장 결과] ${currentEvent.title} ➔ 주가 ${rate}% 폭락...`, 'down');
+            // 결과 안내 출력
+            const resultBox = document.getElementById('newsResult');
+            resultBox.classList.remove('hidden', 'bg-emerald-500/20', 'text-emerald-300', 'bg-rose-500/20', 'text-rose-300', 'bg-slate-700', 'text-slate-300');
+            
+            let resultText = "";
+            if (isFake) {
+                resultText += "🚨 [찌라시 속보!] 해당 뉴스는 세력의 가짜 뉴스로 밝혀졌습니다!\n";
+            }
+            resultText += `결과: 주가가 ${finalPct > 0 ? '+' : ''}${finalPct}% 변동했습니다.`;
+            
+            if (finalPct > 0) {
+                resultBox.classList.add('bg-emerald-500/20', 'text-emerald-300');
+            } else if (finalPct < 0) {
+                resultBox.classList.add('bg-rose-500/20', 'text-rose-300');
             } else {
-                priceTag.className = "text-xs font-bold px-2 py-0.5 rounded text-slate-400 bg-slate-800";
-                priceTag.innerText = `0.0% 보합`;
+                resultBox.classList.add('bg-slate-700', 'text-slate-300');
             }
+            resultBox.innerText = resultText;
 
-            // 4. Update History Chart & State
+            // 데이터 기록 및 다음 턴 준비
             const totalAsset = cash + stockCash;
-            updateChart(currentTurn, totalAsset);
+            assetChart.data.labels.push(`${turn}턴`);
+            assetChart.data.datasets[0].data.push(totalAsset);
+            assetChart.update();
 
-            // Check Win / Loss Conditions
+            // 판정
             if (totalAsset <= 0) {
-                endGame(false, "bankruptcy");
-                return;
-            }
-            if (totalAsset >= goalAsset) {
-                endGame(true, "goal_reached");
+                setTimeout(() => alert("💸 자산이 0원이 되어 파산하셨습니다!"), 100);
+                disableGame();
                 return;
             }
 
-            if (currentTurn >= maxTurns) {
-                if (totalAsset >= goalAsset) {
-                    endGame(true, "goal_reached");
-                } else {
-                    endGame(false, "turn_limit");
-                }
+            if (totalAsset >= 300000) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                setTimeout(() => alert(`🎉 축하합니다! ${turn}턴 만에 30만 원을 달성하여 투자왕이 되셨습니다!`), 100);
+                disableGame();
                 return;
             }
 
-            // Proceed to next turn
-            currentTurn++;
+            turn++;
+            if (turn > 15) {
+                setTimeout(() => alert(`⏰ 게임 마감! 최종 자산: ${totalAsset.toLocaleString()}원`), 100);
+                disableGame();
+                return;
+            }
+
             updateUI();
-            setNews();
+            setTimeout(initTurn, 1200); // 1.2초 뒤 다음 턴 뉴스로 이동
         }
 
-        // --- END GAME MODAL ---
-        function endGame(isWin, reason) {
-            updateUI();
-            const modal = document.getElementById('resultModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalSubtitle = document.getElementById('modalSubtitle');
-            const modalFinalAsset = document.getElementById('modalFinalAsset');
-            const modalReturnRate = document.getElementById('modalReturnRate');
-            const modalTurnsUsed = document.getElementById('modalTurnsUsed');
-            const modalIconContainer = document.getElementById('modalIconContainer');
+        // UI 업데이트
+        function updateUI() {
+            document.getElementById('turnDisplay').innerText = `${turn} / 15`;
+            document.getElementById('cashDisplay').innerText = `${cash.toLocaleString()}원`;
+            document.getElementById('stockCashDisplay').innerText = `${stockCash.toLocaleString()}원`;
+            
+            const total = cash + stockCash;
+            document.getElementById('totalAssetDisplay').innerText = `${total.toLocaleString()}원`;
 
-            const totalAsset = cash + stockCash;
-            const returnRate = (((totalAsset - 100000) / 100000) * 100).toFixed(1);
-
-            modalFinalAsset.innerText = formatKRW(totalAsset);
-            modalReturnRate.innerText = `${returnRate >= 0 ? '+' : ''}${returnRate}%`;
-            modalTurnsUsed.innerText = `${currentTurn}턴`;
-
-            if (isWin) {
-                playSound('win');
-                confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-
-                modalTitle.innerText = "🏆 전설의 투자왕 등극!";
-                modalSubtitle.innerText = "목표 금액 30만 원을 초과 달성하여 자산가가 되었습니다!";
-                modalIconContainer.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-lg glow-gold";
-                modalIconContainer.innerHTML = `<i data-lucide="trophy" class="w-10 h-10"></i>`;
+            // 모멘텀 UI 표시
+            const mBox = document.getElementById('momentumDisplay');
+            if (momentum > 0) {
+                mBox.innerHTML = `<span class="text-rose-400 font-bold">🔥 상승 모멘텀 (+${momentum})</span>`;
+            } else if (momentum < 0) {
+                mBox.innerHTML = `<span class="text-blue-400 font-bold">❄️ 하락 모멘텀 (${momentum})</span>`;
             } else {
-                playSound('lose');
-                modalIconContainer.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-blue-500/20 text-blue-400 border border-blue-500/30";
-                
-                if (reason === "bankruptcy") {
-                    modalTitle.innerText = "💸 파산했습니다...";
-                    modalSubtitle.innerText = "모든 자산을 잃고 깡통 계좌가 되었습니다.";
-                    modalIconContainer.innerHTML = `<i data-lucide="skull" class="w-10 h-10"></i>`;
-                } else {
-                    modalTitle.innerText = "⏰ 기회 소진 (도전 실패)";
-                    modalSubtitle.innerText = "15턴 동안 목표 금액(30만 원)을 채우지 못했습니다.";
-                    modalIconContainer.innerHTML = `<i data-lucide="hourglass" class="w-10 h-10"></i>`;
-                }
+                mBox.innerHTML = `<span class="text-slate-400">⚖️ 중립</span>`;
             }
-
-            lucide.createIcons();
-            modal.classList.remove('hidden');
         }
 
-        // --- RESET / RESTART GAME ---
-        function resetGame() {
-            currentTurn = 1;
-            cash = 100000;
-            stockCash = 0;
-            stockPrice = 10000;
-            assetHistory = [100000];
-
-            document.getElementById('resultModal').classList.add('hidden');
-            document.getElementById('logContainer').innerHTML = '<div class="text-slate-500 italic text-center py-8">아직 진행된 거래가 없습니다.</div>';
-
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-            initChart();
-
-            updateUI();
-            setNews();
+        function disableGame() {
+            document.getElementById('buyBtn').disabled = true;
+            document.getElementById('holdBtn').disabled = true;
+            document.getElementById('sellBtn').disabled = true;
         }
 
-        // --- INIT & EVENT LISTENERS ---
-        window.addEventListener('DOMContentLoaded', () => {
-            initChart();
-            updateUI();
-            setNews();
-
-            // Button Action Bindings
-            document.getElementById('buyBtn').addEventListener('click', () => handleTurn('buy'));
-            document.getElementById('holdBtn').addEventListener('click', () => handleTurn('hold'));
-            document.getElementById('sellBtn').addEventListener('click', () => handleTurn('sell'));
-
-            document.getElementById('restartBtnHeader').addEventListener('click', resetGame);
-            document.getElementById('restartBtnModal').addEventListener('click', resetGame);
-
-            // Sound Toggle
-            document.getElementById('soundToggle').addEventListener('click', () => {
-                soundEnabled = !soundEnabled;
-                const icon = document.getElementById('soundIcon');
-                if (soundEnabled) {
-                    icon.setAttribute('data-lucide', 'volume-2');
-                } else {
-                    icon.setAttribute('data-lucide', 'volume-x');
-                }
-                lucide.createIcons();
-            });
-        });
+        // 게임 시작
+        window.onload = initTurn;
     </script>
 </body>
 </html>
