@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자왕이 되자! - 멀티모드 에디션</title>
+    <title>투자왕이 되자! - 무한 생존 20턴 에디션</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -21,11 +21,11 @@
 
     <div class="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
         <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-600 p-6 text-center">
+        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-rose-600 p-6 text-center">
             <h1 class="text-3xl font-extrabold tracking-tight flex items-center justify-center gap-2">
-                <i data-lucide="layers" class="w-8 h-8 text-yellow-300"></i> 투자왕이 되자! (멀티모드)
+                <i data-lucide="shield-alert" class="w-8 h-8 text-yellow-300"></i> 투자왕이 되자! (20턴 무한생존)
             </h1>
-            <p class="text-indigo-200 text-sm mt-1">원하는 투자 모드를 고르고, 누적 랭킹과 자산을 쌓아보세요!</p>
+            <p class="text-indigo-200 text-sm mt-1">목표 제한 없이 20턴 동안 최대한 자산을 불려보세요! 언제든 [손절] 가능!</p>
         </div>
 
         <!-- 메인 대시보드 -->
@@ -58,7 +58,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
                     <span class="text-xs text-slate-400 block">진행 턴</span>
-                    <span id="turnDisplay" class="text-lg font-bold text-amber-400">1 / 15</span>
+                    <span id="turnDisplay" class="text-lg font-bold text-amber-400">1 / 20</span>
                 </div>
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
                     <span class="text-xs text-slate-400 block">보유 현금</span>
@@ -104,17 +104,20 @@
                 </div>
             </div>
 
-            <!-- [현물 모드] 매수 / 매도 / 존버 패널 -->
+            <!-- [현물 모드] 매수 / 매도 / 존버 / 손절 패널 -->
             <div id="spotControlPanel" class="space-y-3">
-                <div class="flex gap-2">
-                    <button onclick="setSpotTab('buy')" id="btnBuyTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1">
-                        <i data-lucide="arrow-down-circle" class="w-4 h-4"></i> 매수
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="setSpotTab('buy')" id="btnBuyTab" class="py-2.5 rounded-xl font-semibold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        매수
                     </button>
-                    <button onclick="setSpotTab('sell')" id="btnSellTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
-                        <i data-lucide="arrow-up-circle" class="w-4 h-4"></i> 매도
+                    <button onclick="setSpotTab('sell')" id="btnSellTab" class="py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        매도
                     </button>
-                    <button onclick="executeSpotAction('stay')" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
-                        <i data-lucide="shield" class="w-4 h-4"></i> 존버
+                    <button onclick="executeSpotAction('stay')" class="py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        존버
+                    </button>
+                    <button onclick="triggerStopLoss()" class="py-2.5 rounded-xl font-bold bg-rose-700 hover:bg-rose-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1 shadow-lg shadow-rose-900/30">
+                        🚨 손절
                     </button>
                 </div>
                 <div class="flex gap-2 items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
@@ -124,20 +127,23 @@
                 </div>
             </div>
 
-            <!-- [선물 모드] 롱 / 숏 포지션 패널 (기본 숨김) -->
+            <!-- [선물 모드] 롱 / 숏 / 손절 패널 (기본 숨김) -->
             <div id="futureControlPanel" class="space-y-3 hidden">
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="selectPosition('LONG')" id="btnLong" class="py-2.5 px-3 rounded-xl font-extrabold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-emerald-500 shadow">
-                        <i data-lucide="trending-up" class="w-4 h-4"></i> 🟢 롱 (상승)
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="selectPosition('LONG')" id="btnLong" class="py-2.5 px-2 rounded-xl font-extrabold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-emerald-500 shadow">
+                        🟢 롱 (상승)
                     </button>
-                    <button onclick="selectPosition('SHORT')" id="btnShort" class="py-2.5 px-3 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600 transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-600">
-                        <i data-lucide="trending-down" class="w-4 h-4"></i> 🔴 숏 (하락)
+                    <button onclick="selectPosition('SHORT')" id="btnShort" class="py-2.5 px-2 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600/50 transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-slate-600">
+                        🔴 숏 (하락)
+                    </button>
+                    <button onclick="triggerStopLoss()" class="py-2.5 px-2 rounded-xl font-bold bg-rose-700 hover:bg-rose-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1 shadow-lg shadow-rose-900/30">
+                        🚨 손절
                     </button>
                 </div>
                 <div class="flex gap-2 items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
-                    <span id="futurePositionIndicator" class="text-xs font-bold text-emerald-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded">선택: 롱(LONG)</span>
+                    <span id="futurePositionIndicator" class="text-xs font-bold text-emerald-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded">선택: 롱</span>
                     <input type="number" id="futureAmountInput" placeholder="투자 금액 입력 (비워두면 전액)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
-                    <button onclick="executeFutureAction()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shrink-0">포지션 진입</button>
+                    <button onclick="executeFutureAction()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shrink-0">진입</button>
                 </div>
             </div>
 
@@ -159,18 +165,17 @@
     </div>
 
     <script>
-        // 누적 통계 (로컬 스토리지 연동)
-        let stats = JSON.parse(localStorage.getItem('investment_stats')) || { plays: 0, bestAsset: 100000 };
+        let stats = JSON.parse(localStorage.getItem('investment_stats_v2')) || { plays: 0, bestAsset: 100000 };
 
-        let gameMode = 'spot'; // 'spot' (현물) 또는 'future' (선물)
+        let gameMode = 'spot'; 
         let turn = 1;
         let cash = 100000;
-        let subAccount = 0; // 주식 계좌 또는 포지션 금액
+        let subAccount = 0; 
         let stockPrice = 10000;
         let assetHistory = [100000];
         let chartStyle = 'line';
-        let spotTab = 'buy'; // 'buy' 또는 'sell'
-        let futurePos = 'LONG'; // 'LONG' 또는 'SHORT'
+        let spotTab = 'buy'; 
+        let futurePos = 'LONG'; 
 
         const newsPool = [
             { title: "🚀 꿈의 신기술 특허 최종 승인!", desc: "A사가 혁신적인 배터리 특허를 취득하며 폭등 조짐이 보입니다.", min: 10, max: 40 },
@@ -254,12 +259,12 @@
             const sTab = document.getElementById('btnSellTab');
             const label = document.getElementById('spotInputLabel');
             if (tab === 'buy') {
-                bTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1";
-                sTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                bTab.className = "py-2.5 rounded-xl font-semibold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                sTab.className = "py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
                 label.innerText = "매수 금액:";
             } else {
-                bTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
-                sTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-blue-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                bTab.className = "py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                sTab.className = "py-2.5 rounded-xl font-semibold bg-blue-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1";
                 label.innerText = "매도 금액:";
             }
         }
@@ -270,14 +275,14 @@
             const bShort = document.getElementById('btnShort');
             const indicator = document.getElementById('futurePositionIndicator');
             if (pos === 'LONG') {
-                bLong.className = "py-2.5 px-3 rounded-xl font-extrabold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-emerald-500 shadow";
-                bShort.className = "py-2.5 px-3 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600/50 transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-600";
-                indicator.innerText = "선택: 롱(LONG)";
+                bLong.className = "py-2.5 px-2 rounded-xl font-extrabold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-emerald-500 shadow";
+                bShort.className = "py-2.5 px-2 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600/50 transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-slate-600";
+                indicator.innerText = "선택: 롱";
                 indicator.className = "text-xs font-bold text-emerald-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded";
             } else {
-                bLong.className = "py-2.5 px-3 rounded-xl font-extrabold bg-slate-700 hover:bg-emerald-600/50 transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-slate-600";
-                bShort.className = "py-2.5 px-3 rounded-xl font-extrabold bg-rose-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-rose-500 shadow";
-                indicator.innerText = "선택: 숏(SHORT)";
+                bLong.className = "py-2.5 px-2 rounded-xl font-extrabold bg-slate-700 hover:bg-emerald-600/50 transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-slate-600";
+                bShort.className = "py-2.5 px-2 rounded-xl font-extrabold bg-rose-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-rose-500 shadow";
+                indicator.innerText = "선택: 숏";
                 indicator.className = "text-xs font-bold text-rose-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded";
             }
         }
@@ -340,6 +345,21 @@
             }
         }
 
+        // 손절 버튼 기능: 주식 계좌/선물 포지션에 들어있는 금액을 전액 환급받고 게임 즉시 종료
+        function triggerStopLoss() {
+            let totalAsset = cash + subAccount;
+            cash = totalAsset;
+            subAccount = 0;
+            
+            stats.plays++;
+            if (totalAsset > stats.bestAsset) {
+                stats.bestAsset = totalAsset;
+            }
+            localStorage.setItem('investment_stats_v2', JSON.stringify(stats));
+
+            showModal("🚨 손절 선언 (게임 종료)", totalAsset, true);
+        }
+
         function processTurn(actionLog) {
             const isFake = Math.random() < 0.25;
             let rawPct = (Math.random() * (currentNews.max - currentNews.min) + currentNews.min);
@@ -373,14 +393,14 @@
             updateUI();
             checkGameCondition(totalAsset);
 
-            if (turn <= 15 && totalAsset > 0 && totalAsset < 300000) {
+            if (turn <= 20 && totalAsset > 0) {
                 pickNewNews();
             }
         }
 
         function updateUI() {
             let totalAsset = cash + subAccount;
-            document.getElementById('turnDisplay').innerText = `${turn} / 15`;
+            document.getElementById('turnDisplay').innerText = `${turn} / 20`;
             document.getElementById('cashDisplay').innerText = `${cash.toLocaleString()}원`;
             document.getElementById('stockCashDisplay').innerText = `${subAccount.toLocaleString()}원`;
             document.getElementById('totalAssetDisplay').innerText = `${totalAsset.toLocaleString()}원`;
@@ -394,40 +414,42 @@
         }
 
         function getRank(totalAsset) {
-            if (totalAsset >= 300000) return { grade: "S", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", title: "S등급: 전설의 투자왕 👑" };
+            if (totalAsset >= 500000) return { grade: "S+", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", title: "S+등급: 살아있는 투자 전설 👑" };
+            if (totalAsset >= 300000) return { grade: "S", color: "bg-yellow-600/20 text-yellow-200 border-yellow-600/40", title: "S등급: 월스트리트의 제왕 🦅" };
             if (totalAsset >= 200000) return { grade: "A", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", title: "A등급: 천재적 투자 고수 🌟" };
             if (totalAsset >= 150000) return { grade: "B", color: "bg-blue-500/20 text-blue-300 border-blue-500/40", title: "B등급: 우상향 탑승 성공 📈" };
             if (totalAsset >= 100000) return { grade: "C", color: "bg-slate-500/20 text-slate-300 border-slate-500/40", title: "C등급: 본전 지킴이 😐" };
-            if (totalAsset > 0) return { grade: "D", color: "bg-orange-500/20 text-orange-300 border-orange-500/40", title: "D등급: 물려서 청산 위기 💧" };
+            if (totalAsset > 0) return { grade: "D", color: "bg-orange-500/20 text-orange-300 border-orange-500/40", title: "D등급: 원금 까먹은 개미 💧" };
             return { grade: "F", color: "bg-rose-500/20 text-rose-300 border-rose-500/40", title: "F등급: 투자는 당장 접으세요! 💀" };
         }
 
         function checkGameCondition(totalAsset) {
-            if (totalAsset <= 0 || totalAsset >= 300000 || turn >= 15) {
-                // 누적 통계 업데이트
+            if (totalAsset <= 0 || turn >= 20) {
                 stats.plays++;
                 if (totalAsset > stats.bestAsset) {
                     stats.bestAsset = totalAsset;
                 }
-                localStorage.setItem('investment_stats', JSON.stringify(stats));
+                localStorage.setItem('investment_stats_v2', JSON.stringify(stats));
 
-                let title = totalAsset <= 0 ? "💸 파산 (게임 오버)" : (totalAsset >= 300000 ? "🏆 30만 원 달성!" : "⏰ 15턴 장 마감!");
-                showModal(title, totalAsset);
+                let title = totalAsset <= 0 ? "💸 파산 (게임 오버)" : "⏰ 20턴 장 마감!";
+                showModal(title, totalAsset, false);
                 return;
             }
             turn++;
         }
 
-        function showModal(title, totalAsset) {
+        function showModal(title, totalAsset, isStopLoss = false) {
             const rank = getRank(totalAsset);
-            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalTitle').innerText = isStopLoss ? "🚨 손절 정산 완료" : title;
             const badge = document.getElementById('rankBadge');
             badge.className = `inline-block px-4 py-1.5 rounded-full text-base font-extrabold border ${rank.color}`;
             badge.innerText = rank.title;
 
             let diff = totalAsset - 100000;
             let profitStr = diff >= 0 ? `+${diff.toLocaleString()}원 수익` : `${diff.toLocaleString()}원 손실`;
-            document.getElementById('modalDesc').innerText = `최종 자산: ${totalAsset.toLocaleString()}원 (${profitStr})\n누적 플레이 횟수: ${stats.plays}회 | 최고 기록: ${stats.bestAsset.toLocaleString()}원`;
+            let extraMsg = isStopLoss ? "\n(원금을 전액 현금화하고 안전하게 탈출했습니다!)" : "";
+            
+            document.getElementById('modalDesc').innerText = `최종 자산: ${totalAsset.toLocaleString()}원 (${profitStr})${extraMsg}\n누적 플레이 횟수: ${stats.plays}회 | 최고 기록: ${stats.bestAsset.toLocaleString()}원`;
 
             document.getElementById('endModal').classList.remove('hidden');
             document.getElementById('endModal').classList.add('flex');
@@ -458,7 +480,7 @@
 
         function resetAllData() {
             if (confirm("누적 기록을 모두 초기화하시겠습니까?")) {
-                localStorage.removeItem('investment_stats');
+                localStorage.removeItem('investment_stats_v2');
                 stats = { plays: 0, bestAsset: 100000 };
                 updateUI();
                 alert("초기화되었습니다!");
