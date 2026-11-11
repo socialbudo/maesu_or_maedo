@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자왕이 되자! - 의심과 혼돈의 월스트리트</title>
+    <title>투자왕이 되자! - 익스트림 에디션</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -21,79 +21,77 @@
 
     <div class="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
         <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-rose-600 p-6 text-center">
+        <div class="bg-gradient-to-r from-amber-600 via-rose-600 to-purple-600 p-6 text-center">
             <h1 class="text-3xl font-extrabold tracking-tight flex items-center justify-center gap-2">
-                <i data-lucide="help-circle" class="w-8 h-8 animate-bounce"></i> 투자왕이 되자! (의심의 심리학)
+                <i data-lucide="zap" class="w-8 h-8 text-yellow-300 animate-bounce"></i> 투자왕이 되자! (익스트림)
             </h1>
-            <p class="text-indigo-200 text-sm mt-1">대공황일까? 역대급 호재일까? 모든 뉴스는 거짓일 수 있습니다!</p>
+            <p class="text-rose-200 text-sm mt-1">확 확 변동하는 극단의 시장! 과연 당신의 투자 등급은?</p>
         </div>
 
         <!-- 게임 상태 대시보드 -->
-        <div class="p-6 space-y-6">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+        <div class="p-6 space-y-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
                     <span class="text-xs text-slate-400 block">진행 턴</span>
-                    <span id="turnDisplay" class="text-xl font-bold text-indigo-400">1 / 15</span>
+                    <span id="turnDisplay" class="text-lg font-bold text-amber-400">1 / 15</span>
                 </div>
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
                     <span class="text-xs text-slate-400 block">보유 현금</span>
-                    <span id="cashDisplay" class="text-xl font-bold text-emerald-400">100,000원</span>
+                    <span id="cashDisplay" class="text-lg font-bold text-emerald-400">100,000원</span>
                 </div>
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
                     <span class="text-xs text-slate-400 block">주식 계좌</span>
-                    <span id="stockCashDisplay" class="text-xl font-bold text-blue-400">0원</span>
+                    <span id="stockCashDisplay" class="text-lg font-bold text-blue-400">0원</span>
                 </div>
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
                     <span class="text-xs text-slate-400 block">총 자산</span>
-                    <span id="totalAssetDisplay" class="text-xl font-bold text-amber-400">100,000원</span>
+                    <span id="totalAssetDisplay" class="text-lg font-bold text-rose-400">100,000원</span>
                 </div>
             </div>
 
             <!-- 자산 변화 그래프 -->
-            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-700 h-44">
+            <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-700 h-40">
                 <canvas id="assetChart"></canvas>
             </div>
 
             <!-- 뉴스 & 이벤트 패널 -->
-            <div id="newsPanel" class="bg-slate-900 p-5 rounded-xl border border-purple-500/40 shadow-inner space-y-2">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-rose-400 font-extrabold text-lg">
-                        <i data-lucide="radio" class="w-5 h-5 text-rose-500 animate-pulse"></i>
-                        <span id="newsTitle">시장 심리 파악 중...</span>
-                    </div>
+            <div id="newsPanel" class="bg-slate-900 p-4 rounded-xl border border-rose-500/40 shadow-inner space-y-2">
+                <div class="flex items-center gap-2 text-amber-400 font-bold text-base">
+                    <i data-lucide="megaphone" class="w-5 h-5 text-amber-500 shrink-0"></i>
+                    <span id="newsTitle">시장 대기 중...</span>
                 </div>
-                <p id="newsDesc" class="text-slate-300 text-sm leading-relaxed">버튼을 눌러 매수/매도/존버를 결정하세요!</p>
+                <p id="newsDesc" class="text-slate-300 text-xs sm:text-sm leading-relaxed">버튼을 눌러 첫 번째 뉴스를 확인하고 투자하세요!</p>
                 <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span class="text-xs text-amber-400 font-semibold flex items-center gap-1">
-                        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> ⚠️ 주의: 모든 뉴스에는 가짜 뉴스(찌라시) 확률이 포함되어 있습니다!
+                    <span class="text-[11px] text-rose-400 font-medium flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i> ⚠️ 모든 뉴스는 40% 확률로 가짜 뉴스(찌라시)로 밝혀집니다!
                     </span>
                 </div>
             </div>
 
             <!-- 컨트롤 패널 (액션 입력) -->
-            <div id="controlPanel" class="space-y-4">
+            <div id="controlPanel" class="space-y-3">
                 <div class="flex gap-2">
-                    <button onclick="setMode('buy')" id="btnBuyTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 transition text-sm flex items-center justify-center gap-1">
-                        <i data-lucide="arrow-down-circle" class="w-4 h-4"></i> 매수 (현금 ➔ 주식)
+                    <button onclick="setMode('buy')" id="btnBuyTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="arrow-down-circle" class="w-4 h-4"></i> 매수 (현금➔주식)
                     </button>
-                    <button onclick="setMode('sell')" id="btnSellTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1">
-                        <i data-lucide="arrow-up-circle" class="w-4 h-4"></i> 매도 (주식 ➔ 현금)
+                    <button onclick="setMode('sell')" id="btnSellTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="arrow-up-circle" class="w-4 h-4"></i> 매도 (주식➔현금)
                     </button>
-                    <button onclick="doAction('stay')" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1">
+                    <button onclick="doAction('stay')" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
                         <i data-lucide="shield" class="w-4 h-4"></i> 존버
                     </button>
                 </div>
 
-                <div id="inputBoxContainer" class="flex gap-2 items-center bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+                <div id="inputBoxContainer" class="flex gap-2 items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
                     <span id="inputLabel" class="text-xs text-slate-400 whitespace-nowrap">매수 금액:</span>
-                    <input type="number" id="actionAmount" placeholder="금액 입력 (비워두면 전액)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-purple-500">
-                    <button onclick="submitAction()" class="bg-purple-600 hover:bg-purple-500 px-5 py-1.5 rounded-lg text-sm font-bold transition">결정</button>
+                    <input type="number" id="actionAmount" placeholder="금액 입력 (비워두면 전액)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-rose-500">
+                    <button onclick="submitAction()" class="bg-rose-600 hover:bg-rose-500 px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shrink-0">실행</button>
                 </div>
             </div>
 
             <!-- 결과 로그 -->
-            <div id="resultLog" class="text-xs text-slate-400 bg-slate-900/50 p-3 rounded-lg border border-slate-800 min-h-[50px] flex items-center leading-relaxed">
-                시장의 소문에 속지 마세요! 진짜인지 가짜인지 판단하고 투자하세요.
+            <div id="resultLog" class="text-xs text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-800 min-h-[45px] flex items-center leading-relaxed">
+                시작하려면 매수/매도/존버 중 하나를 결정하고 실행하세요!
             </div>
         </div>
     </div>
@@ -102,8 +100,9 @@
     <div id="endModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md p-6 rounded-2xl text-center space-y-4">
             <h2 id="modalTitle" class="text-2xl font-bold">게임 종료</h2>
-            <p id="modalDesc" class="text-slate-300 text-sm">결과 내용</p>
-            <button onclick="restartGame()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 font-bold rounded-xl transition">다시 도전하기</button>
+            <div id="rankBadge" class="inline-block px-4 py-1 rounded-full text-lg font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">등급: -</div>
+            <p id="modalDesc" class="text-slate-300 text-sm leading-relaxed">결과 내용</p>
+            <button onclick="restartGame()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 font-bold rounded-xl transition">다시 도전하기</button>
         </div>
     </div>
 
@@ -115,14 +114,23 @@
         let currentMode = 'buy';
         let assetHistory = [100000];
 
-        // 대공황? 호재? 형태의 극단적 대조 뉴스 헤드라인 리스트
-        const paradoxicalNewsList = [
-            { title: "😱 대공황의 서막? 아니면 🚀 역대급 초대형 호재?", desc: "A사가 비밀리에 추진하던 핵심 사업의 결과 발표가 임박했습니다. 증권가는 극과 극의 전망을 내놓는 중!", baseMin: 10, baseMax: 35 },
-            { title: "💥 회사 붕괴 위기? 아니면 💎 세력의 마지막 개미 털기?", desc: "대표이사의 비리 찌라시가 유포되며 주가가 요동칩니다. 악의적인 루머일까요, 진짜 스캔들일까요?", baseMin: -35, baseMax: -10 },
-            { title: "📉 대침체의 늪? 아니면 📈 바닥 치고 10배 폭등 전조?", desc: "세계 경제 위기설이 퍼지는 가운데, A사만 홀로 신제품 수주에 성공했다는 미확인 유출문서가 떠돌아다닙니다.", baseMin: 8, baseMax: 30 },
-            { title: "⚠️ 상장폐지 절차 착수? 아니면 🤝 10조 원 인수합병 체결?", desc: "공시가 뜨기 직전! 시장에는 극단적인 찬반 소문이 번지며 투자자들의 멘탈을 흔들고 있습니다.", baseMin: -40, baseMax: 40 },
-            { title: "🔥 공장 잿더미 폭망? 아니면 🏆 보험금 100배 대박 호재?", desc: "메인 공장에서 화재가 발생했다는 긴급 타전! 그러나 어마어마한 화재 보험에 가입되어 있다는 소문도 함께 돕니다.", baseMin: -25, baseMax: 25 },
-            { title: "🩸 피바다 떡락장? 아니면 🚀 세력의 숏스퀴즈 폭등 파티?", desc: "외국인 투자자들이 전량 매도하고 도망쳤다는 찌라시가 돌고 있습니다. 진짜일까요?", baseMin: -30, baseMax: 30 }
+        // 15가지 다양하고 극단적인 단일 뉴스 이벤트 풀
+        const uniqueNewsPool = [
+            { title: "🚀 꿈의 신기술 특허 최종 승인!", desc: "A사가 세계를 바꿀 혁신적인 배터리 특허를 취득하며 전 세계의 이목이 집중되었습니다.", min: 15, max: 45 },
+            { title: "💼 글로벌 대기업과 5조 원 공급 계약!", desc: "거대 빅테크 기업이 A사의 제품을 단독 채택하여 엄청난 매출이 기대됩니다.", min: 20, max: 50 },
+            { title: "🏛️ 정부의 파격적인 세제 면제 및 보조금 혜택", desc: "국가대표 유망 기업으로 선정되어 막대한 현금 지원금을 받게 되었습니다.", min: 10, max: 35 },
+            { title: "🔥 메인 공장 대형 화재 발생 (생산 중단)", desc: "핵심 생산 라인이 불타버려 당분간 제품 출하가 불가능해졌습니다.", min: -45, max: -20 },
+            { title: "⚖️ 대표이사 긴급 구속 및 비리 수사", desc: "오너 리스크가 터지면서 주식시장에 거센 충격파가 몰아치고 있습니다.", min: -50, max: -25 },
+            { title: "🦠 창사 이래 최악의 대규모 개인정보 유출", desc: "사이버 해킹 공격으로 고객 정보가 털리며 집단 소송 위기에 처했습니다.", min: -40, max: -15 },
+            { title: "💊 신약 임상시험 3상 대실패 발표", desc: "사활을 걸었던 신약 개발 프로젝트가 최종 무산되었습니다.", min: -45, max: -20 },
+            { title: "🤝 적대적 인수합병(M&A) 시도 소문 확산", desc: "누군가 경영권을 장악하기 위해 지분을 무더기로 매집하고 있다는 소문입니다.", min: 10, max: 40 },
+            { title: "📊 어닝 서프라이즈! 분기 영업이익 300% 폭증", desc: "시장 예상치를 아득히 뛰어넘는 역대급 실적 발표가 나왔습니다.", min: 15, max: 45 },
+            { title: "🚨 금융당국의 전격 불법 공매도 타겟 지정", desc: "작전세력과 공매도 세력의 표적이 되어 주가가 널뛰기하고 있습니다.", min: -35, max: 35 },
+            { title: "🌊 원자재 가격 폭등으로 인한 원가 부담 가중", desc: "주요 부품 가격이 치솟아 수익성이 급격히 악화될 위기입니다.", min: -30, max: -10 },
+            { title: "🏆 올해의 글로벌 혁신 기업 대상 트로피 수상", desc: "국제 산업 박람회에서 최고 영예의 대상을 거머쥐었습니다.", min: 10, max: 30 },
+            { title: "📉 주요 기관 투자자들의 전량 블록딜 매도", desc: "큰손들이 물량을 한 번에 던지면서 주가 하방 압력이 거세졌습니다.", min: -35, max: -10 },
+            { title: "⚡ 차세대 AI 반도체 칩 독점 공급 계약 임박", desc: "인공지능 열풍의 중심에 서며 새로운 성장 동력을 확보했습니다.", min: 20, max: 50 },
+            { title: "🌪️ 글로벌 공급망 마비로 인한 물류 대란", desc: "해상 운임 폭등으로 제품 수출길에 비상이 걸렸습니다.", min: -30, max: -15 }
         ];
 
         let currentNews = null;
@@ -137,8 +145,8 @@
                     datasets: [{
                         label: '총 자산',
                         data: assetHistory,
-                        borderColor: '#a855f7',
-                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        borderColor: '#f43f5e',
+                        backgroundColor: 'rgba(244, 63, 94, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.3
@@ -157,7 +165,8 @@
         }
 
         function pickNewNews() {
-            currentNews = paradoxicalNewsList[Math.floor(Math.random() * paradoxicalNewsList.length)];
+            // 중복을 줄이기 위해 랜덤 선택
+            currentNews = uniqueNewsPool[Math.floor(Math.random() * uniqueNewsPool.length)];
             document.getElementById('newsTitle').innerText = currentNews.title;
             document.getElementById('newsDesc').innerText = currentNews.desc;
         }
@@ -169,12 +178,12 @@
             const label = document.getElementById('inputLabel');
 
             if (mode === 'buy') {
-                btnBuy.className = "flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 transition text-sm flex items-center justify-center gap-1";
-                btnSell.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1";
+                btnBuy.className = "flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                btnSell.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
                 label.innerText = "매수 금액:";
             } else {
-                btnBuy.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-sm flex items-center justify-center gap-1";
-                btnSell.className = "flex-1 py-2.5 rounded-xl font-semibold bg-blue-600 hover:bg-blue-500 transition text-sm flex items-center justify-center gap-1";
+                btnBuy.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                btnSell.className = "flex-1 py-2.5 rounded-xl font-semibold bg-blue-600 hover:bg-blue-500 transition text-xs sm:text-sm flex items-center justify-center gap-1";
                 label.innerText = "매도 금액:";
             }
         }
@@ -218,19 +227,15 @@
         }
 
         function processTurn(actionLog) {
-            // 모든 턴 무작위 가짜 뉴스 시스템 적용 (40% 확률로 가짜 뉴스 판정!)
+            // 40% 확률로 가짜 뉴스(반전) 발생
             const isFake = Math.random() < 0.4;
             
-            // 기본 변동률 계산
-            let rawPct = (Math.random() * (currentNews.baseMax - currentNews.baseMin) + currentNews.baseMin);
-            
-            // 가짜 뉴스의 경우 방향이 뒤집힘!
+            let rawPct = (Math.random() * (currentNews.max - currentNews.min) + currentNews.min);
             if (isFake) {
                 rawPct = -rawPct;
             }
             const fluctuation = Math.round(rawPct * 10) / 10;
 
-            // 주식 계좌 금액 및 주가 반영
             if (stockCash > 0) {
                 let change = Math.round(stockCash * (fluctuation / 100));
                 stockCash += change;
@@ -241,17 +246,15 @@
             let totalAsset = cash + stockCash;
             assetHistory.push(totalAsset);
 
-            // 결과 로그 메시지 조합
             let resultHtml = `${actionLog}<br>`;
             if (isFake) {
-                resultHtml += `🚨 <b class="text-amber-400">[가짜 뉴스 판명!]</b> 소문은 세력의 속임수였습니다! 주가 <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b> 변동!`;
+                resultHtml += `🚨 <b class="text-amber-400">[가짜 뉴스 반전!]</b> 세력의 속임수였습니다! 주가 <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b> 급변동!`;
             } else {
-                resultHtml += `✨ <b class="text-blue-400">[진짜 뉴스 판명!]</b> 소문이 사실로 드러났습니다! 주가 <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b> 변동!`;
+                resultHtml += `✨ <b class="text-blue-400">[진짜 뉴스 적중!]</b> 뉴스가 사실로 판명되었습니다! 주가 <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b> 급변동!`;
             }
 
             document.getElementById('resultLog').innerHTML = resultHtml;
 
-            // 다음 턴 뉴스 준비 & UI 업데이트
             updateUI();
             checkGameCondition(totalAsset);
             
@@ -272,28 +275,44 @@
             chart.update();
         }
 
+        function getRank(totalAsset) {
+            if (totalAsset >= 300000) return { grade: "S", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", title: "S등급: 전설의 워런 버핏 👑" };
+            if (totalAsset >= 200000) return { grade: "A", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", title: "A등급: 천재적 투자 고수 🌟" };
+            if (totalAsset >= 150000) return { grade: "B", color: "bg-blue-500/20 text-blue-300 border-blue-500/40", title: "B등급: 안정적인 수익 주니어 📈" };
+            if (totalAsset >= 100000) return { grade: "C", color: "bg-slate-500/20 text-slate-300 border-slate-500/40", title: "C등급: 본전 지킨 평범한 투자자 😐" };
+            if (totalAsset > 0) return { grade: "D", color: "bg-orange-500/20 text-orange-300 border-orange-500/40", title: "D등급: 물려서 깡통 찬 개미 💧" };
+            return { grade: "F", color: "bg-rose-500/20 text-rose-300 border-rose-500/40", title: "F등급: 투자는 당장 접으세요! 💀" };
+        }
+
         function checkGameCondition(totalAsset) {
             if (totalAsset <= 0) {
-                showModal("💸 깡통 계좌 달성 (파산!)", "가짜 뉴스에 낚여 전 재산을 잃었습니다... 다음엔 더 신중하게 투자해 보세요!");
+                showModal("💸 완전 파산!", totalAsset);
                 return;
             }
             if (totalAsset >= 300000) {
-                showModal("🏆 전설의 심리전 투자왕!", `축하합니다! 소문의 진위를 파악하고 30만 원을 돌파하셨습니다! (최종 자산: ${totalAsset.toLocaleString()}원)`);
+                showModal("🏆 30만 원 목표 달성!", totalAsset);
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 return;
             }
 
             turn++;
             if (turn > 15) {
-                let diff = totalAsset - 100000;
-                let msg = diff >= 0 ? `+${diff.toLocaleString()}원 수익 달성!` : `${diff.toLocaleString()}원 손실 기록.`;
-                showModal("⏰ 15턴 장 마감!", `15회의 치열한 장이 끝났습니다. 최종 자산: ${totalAsset.toLocaleString()}원 (${msg})`);
+                showModal("⏰ 15턴 장 마감!", totalAsset);
             }
         }
 
-        function showModal(title, desc) {
+        function showModal(title, totalAsset) {
+            const rank = getRank(totalAsset);
             document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalDesc').innerText = desc;
+            
+            const badge = document.getElementById('rankBadge');
+            badge.className = `inline-block px-4 py-1.5 rounded-full text-base font-extrabold border ${rank.color}`;
+            badge.innerText = rank.title;
+
+            let diff = totalAsset - 100000;
+            let profitStr = diff >= 0 ? `+${diff.toLocaleString()}원 수익` : `${diff.toLocaleString()}원 손실`;
+            document.getElementById('modalDesc').innerText = `최종 자산: ${totalAsset.toLocaleString()}원 (${profitStr})`;
+
             document.getElementById('endModal').classList.remove('hidden');
             document.getElementById('endModal').classList.add('flex');
             document.getElementById('controlPanel').style.display = 'none';
@@ -308,7 +327,7 @@
             document.getElementById('endModal').classList.remove('flex');
             document.getElementById('endModal').classList.add('hidden');
             document.getElementById('controlPanel').style.display = 'block';
-            document.getElementById('resultLog').innerText = "시장의 소문에 속지 마세요! 진짜인지 가짜인지 판단하고 투자하세요.";
+            document.getElementById('resultLog').innerText = "새로운 게임이 시작되었습니다! 첫 뉴스를 확인하세요.";
             pickNewNews();
             initChart();
             updateUI();
