@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자왕이 되자! - 롱/숏 익스트림 에디션</title>
+    <title>투자왕이 되자! - 멀티모드 에디션</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -21,15 +21,40 @@
 
     <div class="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
         <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-emerald-600 via-indigo-600 to-rose-600 p-6 text-center">
+        <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-600 p-6 text-center">
             <h1 class="text-3xl font-extrabold tracking-tight flex items-center justify-center gap-2">
-                <i data-lucide="candlestick-chart" class="w-8 h-8 text-yellow-300"></i> 투자왕이 되자! (롱/숏 선물)
+                <i data-lucide="layers" class="w-8 h-8 text-yellow-300"></i> 투자왕이 되자! (멀티모드)
             </h1>
-            <p class="text-indigo-200 text-sm mt-1">상승에 거는 롱(LONG)! 하락에 거는 숏(SHORT)! 방향을 맞춰라!</p>
+            <p class="text-indigo-200 text-sm mt-1">원하는 투자 모드를 고르고, 누적 랭킹과 자산을 쌓아보세요!</p>
         </div>
 
-        <!-- 게임 상태 대시보드 -->
+        <!-- 메인 대시보드 -->
         <div class="p-6 space-y-5">
+            
+            <!-- 상단 통계 & 누적 전적 바 -->
+            <div class="flex justify-between items-center bg-slate-900/80 px-4 py-3 rounded-xl border border-slate-700 text-xs">
+                <div>
+                    <span class="text-slate-400">누적 플레이: </span>
+                    <span id="statPlays" class="font-bold text-indigo-400">0회</span>
+                </div>
+                <div>
+                    <span class="text-slate-400">최고 자산 기록: </span>
+                    <span id="statBest" class="font-bold text-amber-400">100,000원</span>
+                </div>
+                <button onclick="resetAllData()" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white px-2.5 py-1 rounded transition border border-rose-500/40">기록 초기화</button>
+            </div>
+
+            <!-- 모드 선택 탭 -->
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="setGameMode('spot')" id="btnSpotMode" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm bg-indigo-600 text-white transition flex items-center justify-center gap-1.5 border border-indigo-500">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i> 현물 주식 모드 (매수/매도)
+                </button>
+                <button onclick="setGameMode('future')" id="btnFutureMode" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-700 text-slate-300 transition flex items-center justify-center gap-1.5 border border-slate-600">
+                    <i data-lucide="candlestick-chart" class="w-4 h-4"></i> 선물 코인 모드 (롱/숏)
+                </button>
+            </div>
+
+            <!-- 게임 상태 패널 -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
                     <span class="text-xs text-slate-400 block">진행 턴</span>
@@ -40,7 +65,7 @@
                     <span id="cashDisplay" class="text-lg font-bold text-emerald-400">100,000원</span>
                 </div>
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
-                    <span class="text-xs text-slate-400 block">투자 포지션</span>
+                    <span id="assetTitleLabel" class="text-xs text-slate-400 block">주식 계좌</span>
                     <span id="stockCashDisplay" class="text-lg font-bold text-blue-400">0원</span>
                 </div>
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-center">
@@ -49,15 +74,15 @@
                 </div>
             </div>
 
-            <!-- 그래프 모드 전환 탭 및 차트 영역 -->
+            <!-- 차트 영역 -->
             <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-700 space-y-2">
                 <div class="flex justify-between items-center px-1">
                     <span class="text-xs font-semibold text-slate-400 flex items-center gap-1">
                         <i data-lucide="line-chart" class="w-3.5 h-3.5"></i> 차트 뷰 스타일
                     </span>
                     <div class="flex gap-1">
-                        <button onclick="switchChartMode('line')" id="btnLineChart" class="px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition">선 그래프</button>
-                        <button onclick="switchChartMode('btc')" id="btnBtcChart" class="px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition">비트코인 스타일</button>
+                        <button onclick="switchChartStyle('line')" id="btnLineChart" class="px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition">선 그래프</button>
+                        <button onclick="switchChartStyle('btc')" id="btnBtcChart" class="px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition">비트코인 스타일</button>
                     </div>
                 </div>
                 <div class="h-40 relative">
@@ -71,36 +96,54 @@
                     <i data-lucide="newspaper" class="w-5 h-5 text-amber-500 shrink-0"></i>
                     <span id="newsTitle">시장 대기 중...</span>
                 </div>
-                <p id="newsDesc" class="text-slate-300 text-xs sm:text-sm leading-relaxed">롱(상승) 혹은 숏(하락) 포지션을 잡고 뉴스의 방향을 예측하세요!</p>
+                <p id="newsDesc" class="text-slate-300 text-xs sm:text-sm leading-relaxed">모드를 선택하고 첫 턴을 시작하세요!</p>
                 <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
                     <span class="text-[11px] text-indigo-300 font-medium flex items-center gap-1">
-                        <i data-lucide="shield-alert" class="w-3.5 h-3.5 shrink-0"></i> 💡 가짜 뉴스 확률 25% 적용 중!
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5 shrink-0"></i> 💡 25% 확률 가짜 뉴스 시스템 적용 중!
                     </span>
                 </div>
             </div>
 
-            <!-- 롱 / 숏 포지션 선택 패널 -->
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="selectPosition('LONG')" id="btnLong" class="py-3 px-4 rounded-xl font-extrabold bg-slate-700 hover:bg-emerald-600 transition text-sm flex items-center justify-center gap-2 border border-slate-600">
-                    <i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i> 🟢 롱 (상승에 베팅)
-                </button>
-                <button onclick="selectPosition('SHORT')" id="btnShort" class="py-3 px-4 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600 transition text-sm flex items-center justify-center gap-2 border border-slate-600">
-                    <i data-lucide="trending-down" class="w-5 h-5 text-rose-400"></i> 🔴 숏 (하락에 베팅)
-                </button>
+            <!-- [현물 모드] 매수 / 매도 / 존버 패널 -->
+            <div id="spotControlPanel" class="space-y-3">
+                <div class="flex gap-2">
+                    <button onclick="setSpotTab('buy')" id="btnBuyTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="arrow-down-circle" class="w-4 h-4"></i> 매수
+                    </button>
+                    <button onclick="setSpotTab('sell')" id="btnSellTab" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="arrow-up-circle" class="w-4 h-4"></i> 매도
+                    </button>
+                    <button onclick="executeSpotAction('stay')" class="flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1">
+                        <i data-lucide="shield" class="w-4 h-4"></i> 존버
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
+                    <span id="spotInputLabel" class="text-xs text-slate-400 whitespace-nowrap">매수 금액:</span>
+                    <input type="number" id="spotAmountInput" placeholder="금액 입력 (비워두면 전액)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <button onclick="submitSpotAction()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shrink-0">실행</button>
+                </div>
             </div>
 
-            <!-- 컨트롤 패널 (금액 입력 및 실행) -->
-            <div id="controlPanel" class="space-y-3">
+            <!-- [선물 모드] 롱 / 숏 포지션 패널 (기본 숨김) -->
+            <div id="futureControlPanel" class="space-y-3 hidden">
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="selectPosition('LONG')" id="btnLong" class="py-2.5 px-3 rounded-xl font-extrabold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-emerald-500 shadow">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i> 🟢 롱 (상승)
+                    </button>
+                    <button onclick="selectPosition('SHORT')" id="btnShort" class="py-2.5 px-3 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600 transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-600">
+                        <i data-lucide="trending-down" class="w-4 h-4"></i> 🔴 숏 (하락)
+                    </button>
+                </div>
                 <div class="flex gap-2 items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
-                    <span id="positionIndicator" class="text-xs font-bold text-emerald-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded">선택: 롱(LONG)</span>
-                    <input type="number" id="actionAmount" placeholder="투자할 금액 입력 (비워두면 전액)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
-                    <button onclick="executeTrade()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shrink-0">포지션 진입</button>
+                    <span id="futurePositionIndicator" class="text-xs font-bold text-emerald-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded">선택: 롱(LONG)</span>
+                    <input type="number" id="futureAmountInput" placeholder="투자 금액 입력 (비워두면 전액)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <button onclick="executeFutureAction()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shrink-0">포지션 진입</button>
                 </div>
             </div>
 
             <!-- 결과 로그 -->
             <div id="resultLog" class="text-xs text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-800 min-h-[45px] flex items-center leading-relaxed">
-                롱 또는 숏 포지션을 선택하고 금액을 입력한 뒤 포지션 진입을 누르세요!
+                모드를 선택하고 첫 번째 투자를 진행하세요!
             </div>
         </div>
     </div>
@@ -111,20 +154,25 @@
             <h2 id="modalTitle" class="text-2xl font-bold">게임 종료</h2>
             <div id="rankBadge" class="inline-block px-4 py-1.5 rounded-full text-base font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">등급: -</div>
             <p id="modalDesc" class="text-slate-300 text-sm leading-relaxed">결과 내용</p>
-            <button onclick="restartGame()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl transition">다시 도전하기</button>
+            <button onclick="restartGame()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl transition">다음 판 도전하기</button>
         </div>
     </div>
 
     <script>
+        // 누적 통계 (로컬 스토리지 연동)
+        let stats = JSON.parse(localStorage.getItem('investment_stats')) || { plays: 0, bestAsset: 100000 };
+
+        let gameMode = 'spot'; // 'spot' (현물) 또는 'future' (선물)
         let turn = 1;
         let cash = 100000;
-        let stockCash = 0;
-        let currentPosition = 'LONG';
+        let subAccount = 0; // 주식 계좌 또는 포지션 금액
         let stockPrice = 10000;
         let assetHistory = [100000];
         let chartStyle = 'line';
+        let spotTab = 'buy'; // 'buy' 또는 'sell'
+        let futurePos = 'LONG'; // 'LONG' 또는 'SHORT'
 
-        const uniqueNewsPool = [
+        const newsPool = [
             { title: "🚀 꿈의 신기술 특허 최종 승인!", desc: "A사가 혁신적인 배터리 특허를 취득하며 폭등 조짐이 보입니다.", min: 10, max: 40 },
             { title: "💼 글로벌 대기업과 5조 원 공급 계약!", desc: "거대 빅테크 기업이 A사의 제품을 단독 채택했습니다.", min: 15, max: 45 },
             { title: "🏛️ 정부의 파격적인 세제 면제 및 보조금 혜택", desc: "국가대표 유망 기업으로 선정되어 막대한 지원금을 받습니다.", min: 10, max: 30 },
@@ -145,7 +193,7 @@
             chart = new Chart(ctx, {
                 type: chartStyle === 'btc' ? 'bar' : 'line',
                 data: {
-                    labels: ['시작'],
+                    labels: assetHistory.map((_, i) => i === 0 ? '시작' : i),
                     datasets: [{
                         label: '총 자산',
                         data: assetHistory,
@@ -168,96 +216,156 @@
             });
         }
 
-        function switchChartMode(mode) {
-            chartStyle = mode;
-            const btnLine = document.getElementById('btnLineChart');
-            const btnBtc = document.getElementById('btnBtcChart');
-            if (mode === 'line') {
-                btnLine.className = "px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition";
-                btnBtc.className = "px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
-            } else {
-                btnLine.className = "px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
-                btnBtc.className = "px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition";
-            }
+        function switchChartStyle(style) {
+            chartStyle = style;
+            document.getElementById('btnLineChart').className = style === 'line' ? "px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition" : "px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
+            document.getElementById('btnBtcChart').className = style === 'btc' ? "px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition" : "px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
             initChart();
             updateUI();
         }
 
-        function pickNewNews() {
-            currentNews = uniqueNewsPool[Math.floor(Math.random() * uniqueNewsPool.length)];
-            document.getElementById('newsTitle').innerText = currentNews.title;
-            document.getElementById('newsDesc').innerText = currentNews.desc;
+        function setGameMode(mode) {
+            gameMode = mode;
+            const btnSpot = document.getElementById('btnSpotMode');
+            const btnFuture = document.getElementById('btnFutureMode');
+            const spotPanel = document.getElementById('spotControlPanel');
+            const futurePanel = document.getElementById('futureControlPanel');
+            const titleLabel = document.getElementById('assetTitleLabel');
+
+            if (mode === 'spot') {
+                btnSpot.className = "py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm bg-indigo-600 text-white transition flex items-center justify-center gap-1.5 border border-indigo-500";
+                btnFuture.className = "py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-700 text-slate-300 transition flex items-center justify-center gap-1.5 border border-slate-600";
+                spotPanel.classList.remove('hidden');
+                futurePanel.classList.add('hidden');
+                titleLabel.innerText = "주식 계좌";
+            } else {
+                btnSpot.className = "py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-700 text-slate-300 transition flex items-center justify-center gap-1.5 border border-slate-600";
+                btnFuture.className = "py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm bg-purple-600 text-white transition flex items-center justify-center gap-1.5 border border-purple-500";
+                spotPanel.classList.add('hidden');
+                futurePanel.classList.remove('hidden');
+                titleLabel.innerText = "선물 포지션";
+            }
+            restartGame();
+        }
+
+        function setSpotTab(tab) {
+            spotTab = tab;
+            const bTab = document.getElementById('btnBuyTab');
+            const sTab = document.getElementById('btnSellTab');
+            const label = document.getElementById('spotInputLabel');
+            if (tab === 'buy') {
+                bTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                sTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                label.innerText = "매수 금액:";
+            } else {
+                bTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                sTab.className = "flex-1 py-2.5 rounded-xl font-semibold bg-blue-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-1";
+                label.innerText = "매도 금액:";
+            }
         }
 
         function selectPosition(pos) {
-            currentPosition = pos;
-            const btnLong = document.getElementById('btnLong');
-            const btnShort = document.getElementById('btnShort');
-            const indicator = document.getElementById('positionIndicator');
-
+            futurePos = pos;
+            const bLong = document.getElementById('btnLong');
+            const bShort = document.getElementById('btnShort');
+            const indicator = document.getElementById('futurePositionIndicator');
             if (pos === 'LONG') {
-                btnLong.className = "py-3 px-4 rounded-xl font-extrabold bg-emerald-600 text-white transition text-sm flex items-center justify-center gap-2 border border-emerald-500 shadow-lg shadow-emerald-900/40";
-                btnShort.className = "py-3 px-4 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600/50 transition text-sm flex items-center justify-center gap-2 border border-slate-600";
+                bLong.className = "py-2.5 px-3 rounded-xl font-extrabold bg-emerald-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-emerald-500 shadow";
+                bShort.className = "py-2.5 px-3 rounded-xl font-extrabold bg-slate-700 hover:bg-rose-600/50 transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-600";
                 indicator.innerText = "선택: 롱(LONG)";
                 indicator.className = "text-xs font-bold text-emerald-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded";
             } else {
-                btnLong.className = "py-3 px-4 rounded-xl font-extrabold bg-slate-700 hover:bg-emerald-600/50 transition text-sm flex items-center justify-center gap-1 border border-slate-600";
-                btnShort.className = "py-3 px-4 rounded-xl font-extrabold bg-rose-600 text-white transition text-sm flex items-center justify-center gap-2 border border-rose-500 shadow-lg shadow-rose-900/40";
+                bLong.className = "py-2.5 px-3 rounded-xl font-extrabold bg-slate-700 hover:bg-emerald-600/50 transition text-xs sm:text-sm flex items-center justify-center gap-1 border border-slate-600";
+                bShort.className = "py-2.5 px-3 rounded-xl font-extrabold bg-rose-600 text-white transition text-xs sm:text-sm flex items-center justify-center gap-2 border border-rose-500 shadow";
                 indicator.innerText = "선택: 숏(SHORT)";
                 indicator.className = "text-xs font-bold text-rose-400 whitespace-nowrap bg-slate-800 px-2.5 py-1 rounded";
             }
         }
 
-        function executeTrade() {
-            const val = document.getElementById('actionAmount').value;
-            const amount = val === "" ? cash : parseInt(val);
+        function pickNewNews() {
+            currentNews = newsPool[Math.floor(Math.random() * newsPool.length)];
+            document.getElementById('newsTitle').innerText = currentNews.title;
+            document.getElementById('newsDesc').innerText = currentNews.desc;
+        }
 
-            if (cash <= 0 && stockCash <= 0) {
+        function submitSpotAction() {
+            const val = document.getElementById('spotAmountInput').value;
+            const amount = val === "" ? null : parseInt(val);
+            let logMsg = "";
+
+            if (spotTab === 'buy') {
+                let invest = (amount === null) ? cash : amount;
+                if (cash <= 0) logMsg = "❌ 현금이 없어 매수할 수 없습니다! (존버 처리)";
+                else if (invest > 0 && invest <= cash) {
+                    cash -= invest;
+                    subAccount += invest;
+                    logMsg = `✅ 주식 계좌에 ${invest.toLocaleString()}원을 투입했습니다.`;
+                } else logMsg = "❌ 금액 오류로 존버 처리됩니다.";
+            } else {
+                let divest = (amount === null) ? subAccount : amount;
+                if (subAccount <= 0) logMsg = "❌ 주식 계좌에 잔액이 없습니다! (존버 처리)";
+                else if (divest > 0 && divest <= subAccount) {
+                    subAccount -= divest;
+                    cash += divest;
+                    logMsg = `✅ 주식 계좌에서 ${divest.toLocaleString()}원을 현금화했습니다.`;
+                } else logMsg = "❌ 금액 오류로 존버 처리됩니다.";
+            }
+            document.getElementById('spotAmountInput').value = "";
+            processTurn(logMsg);
+        }
+
+        function executeFutureAction() {
+            const val = document.getElementById('futureAmountInput').value;
+            const amount = val === "" ? (cash + subAccount) : parseInt(val);
+
+            if (cash <= 0 && subAccount <= 0) {
                 document.getElementById('resultLog').innerText = "❌ 자산이 없어 포지션을 잡을 수 없습니다!";
                 return;
             }
-
-            if (isNaN(amount) || amount <= 0 || amount > cash + stockCash) {
+            if (isNaN(amount) || amount <= 0 || amount > cash + subAccount) {
                 document.getElementById('resultLog').innerText = "❌ 올바른 투자 금액을 입력해주세요.";
                 return;
             }
 
-            let totalAvailable = cash + stockCash;
-            cash = totalAvailable - amount;
-            stockCash = amount;
-
-            processTurn();
+            let total = cash + subAccount;
+            cash = total - amount;
+            subAccount = amount;
+            document.getElementById('futureAmountInput').value = "";
+            processTurn(`[${futurePos} 포지션 진입]`);
         }
 
-        function processTurn() {
-            // 수정 완료: 25% 확률로 가짜 뉴스 반전
+        function executeSpotAction(action) {
+            if (action === 'stay') {
+                processTurn("🧘 시장을 관망하며 존버합니다.");
+            }
+        }
+
+        function processTurn(actionLog) {
             const isFake = Math.random() < 0.25;
             let rawPct = (Math.random() * (currentNews.max - currentNews.min) + currentNews.min);
             if (isFake) rawPct = -rawPct;
             const fluctuation = Math.round(rawPct * 10) / 10;
 
-            let pnlPercent = 0;
-            if (currentPosition === 'LONG') {
-                pnlPercent = fluctuation;
-            } else {
-                pnlPercent = -fluctuation;
+            let pnlPct = fluctuation;
+            if (gameMode === 'future' && futurePos === 'SHORT') {
+                pnlPct = -fluctuation;
             }
 
-            if (stockCash > 0) {
-                let profitLoss = Math.round(stockCash * (pnlPercent / 100));
-                stockCash += profitLoss;
-                if (stockCash < 0) stockCash = 0;
+            if (subAccount > 0) {
+                let change = Math.round(subAccount * (pnlPct / 100));
+                subAccount += change;
+                if (subAccount < 0) subAccount = 0;
             }
 
             stockPrice = Math.max(100, Math.round(stockPrice * (1 + fluctuation / 100)));
-            let totalAsset = cash + stockCash;
+            let totalAsset = cash + subAccount;
             assetHistory.push(totalAsset);
 
-            let resultHtml = `[${currentPosition} 포지션] 시장 변동: <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b><br>`;
+            let resultHtml = `${actionLog} 시장 변동: <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b><br>`;
             if (isFake) {
-                resultHtml += `🚨 <b class="text-amber-400">[25% 확률 가짜 뉴스 반전!]</b> 세력의 속임수! (수익률: <b class="${pnlPercent >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnlPercent > 0 ? '+' + pnlPercent : pnlPercent}%</b>)`;
+                resultHtml += `🚨 <b class="text-amber-400">[25% 가짜 뉴스 반전!]</b> (수익률: <b class="${pnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnlPct > 0 ? '+' + pnlPct : pnlPct}%</b>)`;
             } else {
-                resultHtml += `✨ <b class="text-blue-400">[진짜 뉴스 적중!]</b> (수익률: <b class="${pnlPercent >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnlPercent > 0 ? '+' + pnlPercent : pnlPercent}%</b>)`;
+                resultHtml += `✨ <b class="text-blue-400">[진짜 뉴스 적중!]</b> (수익률: <b class="${pnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnlPct > 0 ? '+' + pnlPct : pnlPct}%</b>)`;
             }
 
             document.getElementById('resultLog').innerHTML = resultHtml;
@@ -271,80 +379,95 @@
         }
 
         function updateUI() {
-            let totalAsset = cash + stockCash;
+            let totalAsset = cash + subAccount;
             document.getElementById('turnDisplay').innerText = `${turn} / 15`;
             document.getElementById('cashDisplay').innerText = `${cash.toLocaleString()}원`;
-            document.getElementById('stockCashDisplay').innerText = `${stockCash.toLocaleString()}원`;
+            document.getElementById('stockCashDisplay').innerText = `${subAccount.toLocaleString()}원`;
             document.getElementById('totalAssetDisplay').innerText = `${totalAsset.toLocaleString()}원`;
 
-            chart.data.labels.push(turn);
+            document.getElementById('statPlays').innerText = `${stats.plays}회`;
+            document.getElementById('statBest').innerText = `${stats.bestAsset.toLocaleString()}원`;
+
+            chart.data.labels = assetHistory.map((_, i) => i === 0 ? '시작' : i);
             chart.data.datasets[0].data = assetHistory;
             chart.update();
         }
 
         function getRank(totalAsset) {
-            if (totalAsset >= 300000) return { grade: "S", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", title: "S등급: 비트코인 선물 마스터 👑" };
-            if (totalAsset >= 200000) return { grade: "A", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", title: "A등급: 방향 예측의 신 🌟" };
+            if (totalAsset >= 300000) return { grade: "S", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", title: "S등급: 전설의 투자왕 👑" };
+            if (totalAsset >= 200000) return { grade: "A", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", title: "A등급: 천재적 투자 고수 🌟" };
             if (totalAsset >= 150000) return { grade: "B", color: "bg-blue-500/20 text-blue-300 border-blue-500/40", title: "B등급: 우상향 탑승 성공 📈" };
             if (totalAsset >= 100000) return { grade: "C", color: "bg-slate-500/20 text-slate-300 border-slate-500/40", title: "C등급: 본전 지킴이 😐" };
             if (totalAsset > 0) return { grade: "D", color: "bg-orange-500/20 text-orange-300 border-orange-500/40", title: "D등급: 물려서 청산 위기 💧" };
-            return { grade: "F", color: "bg-rose-500/20 text-rose-300 border-rose-500/40", title: "F등급: 강제 청산(파산) 당함 💀" };
+            return { grade: "F", color: "bg-rose-500/20 text-rose-300 border-rose-500/40", title: "F등급: 투자는 당장 접으세요! 💀" };
         }
 
         function checkGameCondition(totalAsset) {
-            if (totalAsset <= 0) {
-                showModal("💸 강제 청산 (파산!)", totalAsset);
-                return;
-            }
-            if (totalAsset >= 300000) {
-                showModal("🏆 30만 원 목표 달성!", totalAsset);
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-                return;
-            }
+            if (totalAsset <= 0 || totalAsset >= 300000 || turn >= 15) {
+                // 누적 통계 업데이트
+                stats.plays++;
+                if (totalAsset > stats.bestAsset) {
+                    stats.bestAsset = totalAsset;
+                }
+                localStorage.setItem('investment_stats', JSON.stringify(stats));
 
-            turn++;
-            if (turn > 15) {
-                showModal("⏰ 15턴 장 마감!", totalAsset);
+                let title = totalAsset <= 0 ? "💸 파산 (게임 오버)" : (totalAsset >= 300000 ? "🏆 30만 원 달성!" : "⏰ 15턴 장 마감!");
+                showModal(title, totalAsset);
+                return;
             }
+            turn++;
         }
 
         function showModal(title, totalAsset) {
             const rank = getRank(totalAsset);
             document.getElementById('modalTitle').innerText = title;
-            
             const badge = document.getElementById('rankBadge');
             badge.className = `inline-block px-4 py-1.5 rounded-full text-base font-extrabold border ${rank.color}`;
             badge.innerText = rank.title;
 
             let diff = totalAsset - 100000;
             let profitStr = diff >= 0 ? `+${diff.toLocaleString()}원 수익` : `${diff.toLocaleString()}원 손실`;
-            document.getElementById('modalDesc').innerText = `최종 자산: ${totalAsset.toLocaleString()}원 (${profitStr})`;
+            document.getElementById('modalDesc').innerText = `최종 자산: ${totalAsset.toLocaleString()}원 (${profitStr})\n누적 플레이 횟수: ${stats.plays}회 | 최고 기록: ${stats.bestAsset.toLocaleString()}원`;
 
             document.getElementById('endModal').classList.remove('hidden');
             document.getElementById('endModal').classList.add('flex');
-            document.getElementById('controlPanel').style.display = 'none';
+            document.getElementById('spotControlPanel').style.display = 'none';
+            document.getElementById('futureControlPanel').style.display = 'none';
         }
 
         function restartGame() {
             turn = 1;
             cash = 100000;
-            stockCash = 0;
+            subAccount = 0;
             stockPrice = 10000;
             assetHistory = [100000];
             document.getElementById('endModal').classList.remove('flex');
             document.getElementById('endModal').classList.add('hidden');
-            document.getElementById('controlPanel').style.display = 'block';
-            document.getElementById('resultLog').innerText = "새로운 게임이 시작되었습니다! 포지션을 선택하세요.";
-            selectPosition('LONG');
+            
+            if (gameMode === 'spot') {
+                document.getElementById('spotControlPanel').style.display = 'block';
+            } else {
+                document.getElementById('futureControlPanel').style.display = 'block';
+            }
+
+            document.getElementById('resultLog').innerText = "새로운 투자가 시작되었습니다! 전략을 세우세요.";
             pickNewNews();
             initChart();
             updateUI();
         }
 
+        function resetAllData() {
+            if (confirm("누적 기록을 모두 초기화하시겠습니까?")) {
+                localStorage.removeItem('investment_stats');
+                stats = { plays: 0, bestAsset: 100000 };
+                updateUI();
+                alert("초기화되었습니다!");
+            }
+        }
+
         window.onload = () => {
             lucide.createIcons();
             initChart();
-            selectPosition('LONG');
             pickNewNews();
             updateUI();
         };
