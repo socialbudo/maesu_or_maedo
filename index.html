@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자왕이 되자! - 무한 생존 20턴 에디션</title>
+    <title>투자왕이 되자! - 20턴 익스트림 멀티모드</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -25,7 +25,7 @@
             <h1 class="text-3xl font-extrabold tracking-tight flex items-center justify-center gap-2">
                 <i data-lucide="shield-alert" class="w-8 h-8 text-yellow-300"></i> 투자왕이 되자! (20턴 무한생존)
             </h1>
-            <p class="text-indigo-200 text-sm mt-1">목표 제한 없이 20턴 동안 최대한 자산을 불려보세요! 언제든 [손절] 가능!</p>
+            <p class="text-indigo-200 text-sm mt-1">목표 제한 없이 20턴 동안 자산을 불려보세요! 언제든 [손절] 가능!</p>
         </div>
 
         <!-- 메인 대시보드 -->
@@ -74,17 +74,25 @@
                 </div>
             </div>
 
-            <!-- 차트 영역 -->
+            <!-- 차트 영역 및 옵션 설정창 -->
             <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-700 space-y-2">
-                <div class="flex justify-between items-center px-1">
-                    <span class="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                        <i data-lucide="line-chart" class="w-3.5 h-3.5"></i> 차트 뷰 스타일
-                    </span>
-                    <div class="flex gap-1">
-                        <button onclick="switchChartStyle('line')" id="btnLineChart" class="px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition">선 그래프</button>
-                        <button onclick="switchChartStyle('btc')" id="btnBtcChart" class="px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition">비트코인 스타일</button>
+                <!-- 옵션 선택바 (표시 데이터 & 차트 스타일) -->
+                <div class="flex flex-wrap justify-between items-center gap-2 px-1 border-b border-slate-800 pb-2">
+                    <!-- 신규 추가: 차트 데이터 대상 선택 -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs font-semibold text-slate-400 mr-1">표시 대상:</span>
+                        <button onclick="switchTargetData('asset')" id="btnTargetAsset" class="px-2 py-1 text-xs font-bold rounded bg-purple-600 text-white transition">내 자산</button>
+                        <button onclick="switchTargetData('price')" id="btnTargetPrice" class="px-2 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition">시장 가격</button>
+                    </div>
+
+                    <!-- 기존: 차트 뷰 스타일 선택 -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs font-semibold text-slate-400 mr-1">스타일:</span>
+                        <button onclick="switchChartStyle('line')" id="btnLineChart" class="px-2 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition">선 그래프</button>
+                        <button onclick="switchChartStyle('btc')" id="btnBtcChart" class="px-2 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition">비트코인</button>
                     </div>
                 </div>
+
                 <div class="h-40 relative">
                     <canvas id="assetChart"></canvas>
                 </div>
@@ -171,9 +179,13 @@
         let turn = 1;
         let cash = 100000;
         let subAccount = 0; 
-        let stockPrice = 10000;
-        let assetHistory = [100000];
-        let chartStyle = 'line';
+        let stockPrice = 10000; // 시장 주가 (초기 10,000원)
+        
+        let assetHistory = [100000]; // 자산 히스토리 (기본 100,000원)
+        let priceHistory = [10000];  // 주가 히스토리 (기본 10,000원)
+        
+        let targetData = 'asset'; // 'asset' (내 자산) 또는 'price' (시장 가격)
+        let chartStyle = 'line';  // 'line' 또는 'btc'
         let spotTab = 'buy'; 
         let futurePos = 'LONG'; 
 
@@ -195,15 +207,20 @@
             const ctx = document.getElementById('assetChart').getContext('2d');
             if (chart) chart.destroy();
 
+            // 표시할 데이터 세트 결정
+            const activeData = (targetData === 'asset') ? assetHistory : priceHistory;
+            const dataLabel = (targetData === 'asset') ? '총 자산' : '시장 가격';
+            const themeColor = (targetData === 'asset') ? '#6366f1' : '#38bdf8';
+
             chart = new Chart(ctx, {
                 type: chartStyle === 'btc' ? 'bar' : 'line',
                 data: {
-                    labels: assetHistory.map((_, i) => i === 0 ? '시작' : i),
+                    labels: activeData.map((_, i) => i === 0 ? '시작' : i),
                     datasets: [{
-                        label: '총 자산',
-                        data: assetHistory,
-                        borderColor: '#6366f1',
-                        backgroundColor: chartStyle === 'btc' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(99, 102, 241, 0.1)',
+                        label: dataLabel,
+                        data: activeData,
+                        borderColor: themeColor,
+                        backgroundColor: chartStyle === 'btc' ? 'rgba(56, 189, 248, 0.5)' : 'rgba(99, 102, 241, 0.1)',
                         borderWidth: 2,
                         fill: chartStyle !== 'btc',
                         tension: 0.3
@@ -221,10 +238,20 @@
             });
         }
 
+        // 데이터 대상 전환 (자산 vs 주가)
+        function switchTargetData(target) {
+            targetData = target;
+            document.getElementById('btnTargetAsset').className = target === 'asset' ? "px-2 py-1 text-xs font-bold rounded bg-purple-600 text-white transition" : "px-2 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
+            document.getElementById('btnTargetPrice').className = target === 'price' ? "px-2 py-1 text-xs font-bold rounded bg-purple-600 text-white transition" : "px-2 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
+            initChart();
+            updateUI();
+        }
+
+        // 차트 스타일 전환 (선 vs 비트코인)
         function switchChartStyle(style) {
             chartStyle = style;
-            document.getElementById('btnLineChart').className = style === 'line' ? "px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition" : "px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
-            document.getElementById('btnBtcChart').className = style === 'btc' ? "px-2.5 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition" : "px-2.5 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
+            document.getElementById('btnLineChart').className = style === 'line' ? "px-2 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition" : "px-2 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
+            document.getElementById('btnBtcChart').className = style === 'btc' ? "px-2 py-1 text-xs font-bold rounded bg-indigo-600 text-white transition" : "px-2 py-1 text-xs font-bold rounded bg-slate-700 text-slate-300 transition";
             initChart();
             updateUI();
         }
@@ -345,7 +372,6 @@
             }
         }
 
-        // 손절 버튼 기능: 주식 계좌/선물 포지션에 들어있는 금액을 전액 환급받고 게임 즉시 종료
         function triggerStopLoss() {
             let totalAsset = cash + subAccount;
             cash = totalAsset;
@@ -377,11 +403,15 @@
                 if (subAccount < 0) subAccount = 0;
             }
 
+            // 시장 가격 업데이트 (초기 10,000원에서 변동)
             stockPrice = Math.max(100, Math.round(stockPrice * (1 + fluctuation / 100)));
+            priceHistory.push(stockPrice);
+
+            // 총 자산 업데이트
             let totalAsset = cash + subAccount;
             assetHistory.push(totalAsset);
 
-            let resultHtml = `${actionLog} 시장 변동: <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b><br>`;
+            let resultHtml = `${actionLog} 시장 변동: <b class="${fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fluctuation > 0 ? '+' + fluctuation : fluctuation}%</b> (주가: ${stockPrice.toLocaleString()}원)<br>`;
             if (isFake) {
                 resultHtml += `🚨 <b class="text-amber-400">[25% 가짜 뉴스 반전!]</b> (수익률: <b class="${pnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnlPct > 0 ? '+' + pnlPct : pnlPct}%</b>)`;
             } else {
@@ -408,8 +438,10 @@
             document.getElementById('statPlays').innerText = `${stats.plays}회`;
             document.getElementById('statBest').innerText = `${stats.bestAsset.toLocaleString()}원`;
 
-            chart.data.labels = assetHistory.map((_, i) => i === 0 ? '시작' : i);
-            chart.data.datasets[0].data = assetHistory;
+            const activeData = (targetData === 'asset') ? assetHistory : priceHistory;
+            chart.data.labels = activeData.map((_, i) => i === 0 ? '시작' : i);
+            chart.data.datasets[0].data = activeData;
+            chart.data.datasets[0].label = (targetData === 'asset') ? '총 자산' : '시장 가격';
             chart.update();
         }
 
@@ -463,6 +495,8 @@
             subAccount = 0;
             stockPrice = 10000;
             assetHistory = [100000];
+            priceHistory = [10000];
+
             document.getElementById('endModal').classList.remove('flex');
             document.getElementById('endModal').classList.add('hidden');
             
